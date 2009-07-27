@@ -178,12 +178,12 @@ namespace SkeinFish
             byte[] hash = new byte[m_OutputBytes];
             ulong[] old_state = new ulong[m_CipherStateBytes];
 
+            // Save old state
+            for (j = 0; j < m_State.Length; j++)
+                old_state[j] = m_State[j];
+
             for (i = 0; i < m_OutputBytes; i += m_CipherStateBytes)
             {
-                // Save old state
-                for (j = 0; j < m_State.Length; j++)
-                    old_state[j] = m_State[j];
-
                 m_Tweak.StartNewType(UBIType.Out); 
                 m_Tweak.SetFinalFlag(true);
                 ProcessBlock(8);
