@@ -40,9 +40,7 @@ namespace SkeinFish
         ThreefishTransformType m_TransformType;
         ThreefishCipher m_Cipher;
         TransformFunc m_TransformFunc;
-
-
-
+        
         CipherMode  m_CipherMode;
         PaddingMode m_PaddingMode;
 
@@ -131,13 +129,13 @@ namespace SkeinFish
                 case CipherMode.ECB:
                 case CipherMode.CBC:
                     // Clear the working block
-                    for (int i = 0; i < m_CipherBytes; i++)
+                    for (int i = 0; i < m_CipherWords; i++)
                         m_Block[i] = 0;
                     break;
 
                 case CipherMode.OFB:
                     // Copy the IV to the working block
-                    for (int i = 0; i < m_CipherBytes; i++)
+                    for (int i = 0; i < m_CipherWords; i++)
                         m_Block[i] = m_IV[i];
 
                     break;
