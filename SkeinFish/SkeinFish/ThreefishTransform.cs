@@ -44,12 +44,14 @@ namespace SkeinFish
         CipherModeFunc m_PreTransformFunc;
         CipherModeFunc m_PostTransformFunc;
 
-        CipherMode m_CipherMode;
+        CipherMode  m_CipherMode;
+        PaddingMode m_PaddingMode;
 
         int m_CipherBytes;
         int m_CipherWords;
         int m_CipherBits;
 
+        ulong[] m_PreInputBlock;
         ulong[] m_InputBlock;
         ulong[] m_OutputBlock;
         ulong[] m_IV;
@@ -66,6 +68,7 @@ namespace SkeinFish
             // Allocate working blocks now so that we don't
             // have to allocate them each time 
             // Transform(Final)Block is called
+            m_PreInputBlock = new ulong[m_CipherWords];
             m_InputBlock = new ulong[m_CipherWords];
             m_OutputBlock = new ulong[m_CipherWords];
 
@@ -162,9 +165,11 @@ namespace SkeinFish
                 case CipherMode.CBC:
                     // XOR the IV with the input block
                     for (int i = 0; i < m_CipherWords; i++)
-                    {
-                        m_InputBlock[i] ^= m_IV[i];
-                    }
+                        m_InputBlock[i] = m_PreInputBlock[i] ^ m_IV[i];
+
+                    break;
+
+                case CipherMode.OFB:
                     break;
             }
         }
@@ -176,7 +181,9 @@ namespace SkeinFish
                 case CipherMode.ECB: break;
                 case CipherMode.CBC:
                     // Copy the block to the IV
-                    m_OutputBlock.CopyTo(m_IV, 0);
+                    for (int i = 0; i < m_CipherWords; i++)
+                        m_OutputBlock[i] = m_IV[i];
+
                     break;
             }
         }
@@ -196,13 +203,13 @@ namespace SkeinFish
             {
                 case CipherMode.ECB: break;
                 case CipherMode.CBC:
-                    // XOR the IV with the output block
+                    // XOR the IV with the output block,
+                    // copy input block to IV
                     for (int i = 0; i < m_CipherWords; i++)
                     {
                         m_OutputBlock[i] ^= m_IV[i];
+                        m_IV[i] = m_InputBlock[i];
                     }
-                    // Copy input block to IV
-                    m_InputBlock.CopyTo(m_IV, 0);
                     break;
             }
         }
@@ -227,7 +234,74 @@ namespace SkeinFish
         public int OutputBlockSize
         {
             get { return m_CipherBits; }
-        }        
+        }
+
+        int TransformDivisibleByBlock(byte[] input, int input_offset, int input_count, byte[] output, int output_offset)
+        {
+            // Transform each block
+            int end_offset = input_offset + input_count;
+            int offset;
+
+            for (offset = input_offset; offset < end_offset; offset += m_CipherBytes)
+            {
+                GetBytes(input, offset, m_PreInputBlock, m_CipherBytes);
+                m_PreTransformFunc();
+                m_TransformFunc(m_InputBlock, m_OutputBlock);
+                m_PostTransformFunc();
+                PutBytes(m_OutputBlock, output, offset + output_offset, m_CipherBytes);
+            }
+
+            return offset - input_offset;
+        }
+
+        void PadBlock(byte[] input)
+        {
+            // Get the input amount before we
+            // resize the buffer
+            int input_count = input.Length;
+            // Resize array to match block size
+            Array.Resize(ref input, m_CipherBytes);
+
+            // Apply the type of padding we're using
+            switch (m_PaddingMode)
+            {
+                case PaddingMode.None:
+                case PaddingMode.Zeros:
+                    break; // Array resize already filled it with zeros
+
+                case PaddingMode.PKCS7:
+                    // Fill each byte value with the number of
+                    // bytes padded
+                    for (int i = input_count; i < m_CipherBytes; i++)
+                        input[i] = (byte) (m_CipherBytes - input_count);
+
+                    break;
+
+                case PaddingMode.ANSIX923:
+                    // If there was padding done, set last byte 
+                    // to number of bytes padded (bytes in between
+                    // are zeros, already done by Array.Resize)
+                    if (input_count < m_CipherBytes)
+                        input[m_CipherBytes - 1] = (byte)(m_CipherBytes - input_count);
+
+                    break;
+
+                case PaddingMode.ISO10126:
+                    // Fill remaining bytes with random values
+                    if (input_count < m_CipherBytes)
+                    {
+                        byte[] rand_bytes;
+
+                        rand_bytes = new byte[m_CipherBytes - input_count];
+                        new RNGCryptoServiceProvider().GetBytes(rand_bytes);
+
+                        for (int i = input_count; i < m_CipherBytes; i++)
+                            input[i] = rand_bytes[i - input_count];
+                    }
+
+                    break;
+            }
+        }
 
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
@@ -235,25 +309,16 @@ namespace SkeinFish
             // divisible by the block size
             if ((inputCount & (m_CipherBytes - 1)) != 0)
                 throw new CryptographicException("inputCount must be divisible by the block size.");
-            
-            // Transform each block
-            int end_offset = inputOffset + inputCount;
-            int offset;
-            for (offset = inputOffset; offset < end_offset; offset += m_CipherBytes)
-            {
-                GetBytes(inputBuffer, offset, m_InputBlock, m_CipherBytes);
-                m_PreTransformFunc();
-                m_TransformFunc(m_InputBlock, m_OutputBlock);
-                m_PostTransformFunc();
-                PutBytes(m_OutputBlock, outputBuffer, offset + outputOffset, m_CipherBytes);
-            }
 
-            return offset - inputOffset;
+            return TransformDivisibleByBlock(inputBuffer, inputOffset, inputCount, outputBuffer, outputOffset);
         }
 
         public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            throw new NotImplementedException();
+            // Encrypt as many blocks as we can
+            // normally, without padding
+            //int bytes_done = TransformDivisibleByBlock(
+            return null;
         }
 
         #endregion
