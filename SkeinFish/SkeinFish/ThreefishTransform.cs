@@ -412,6 +412,8 @@ namespace SkeinFish
 
             } while (done > m_CipherBytes);
 
+            int remaining = inputCount - total_done;
+
             // Do the padding and the final transform if
             // there's any data left
             if (total_done < inputCount)
@@ -423,12 +425,16 @@ namespace SkeinFish
                 // to get a really small and probably insignificant speedup)
                 int output_size = inputCount + (m_CipherBytes - (inputCount & (m_CipherBytes - 1)));
                 Array.Resize(ref output, output_size);
+                
+                // Copy remaining bytes over to the output
+                for (int i = 0; i < remaining; i++)
+                    output[i + total_done] = inputBuffer[inputOffset + total_done + i];
 
                 // Pad the block
-                PadBlock(output, total_done, inputCount - total_done);
+                PadBlock(output, total_done, remaining);
 
                 // Encrypt the block
-               // m_TransformFunc(
+                m_TransformFunc(output, total_done, m_CipherBytes, output, total_done);
             }
 
             return output;
