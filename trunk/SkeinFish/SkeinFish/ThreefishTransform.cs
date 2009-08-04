@@ -119,6 +119,29 @@ namespace SkeinFish
             ulong[] key_words = new ulong[m_CipherWords];
             GetBytes(key, 0, key_words, m_CipherBytes);
             m_Cipher.SetKey(key_words);
+
+            InitializeBlocks();
+        }
+
+        // (Re)initializes the blocks for encryption
+        void InitializeBlocks()
+        {
+            switch (m_CipherMode)
+            {
+                case CipherMode.ECB:
+                case CipherMode.CBC:
+                    // Clear the working block
+                    for (int i = 0; i < m_CipherBytes; i++)
+                        m_Block[i] = 0;
+                    break;
+
+                case CipherMode.OFB:
+                    // Copy the IV to the working block
+                    for (int i = 0; i < m_CipherBytes; i++)
+                        m_Block[i] = m_IV[i];
+
+                    break;
+            }
         }
 
         #region Utils
@@ -436,6 +459,9 @@ namespace SkeinFish
                 // Encrypt the block
                 m_TransformFunc(output, total_done, m_CipherBytes, output, total_done);
             }
+
+            // Reinitialize the cipher
+            InitializeBlocks();
 
             return output;
 
