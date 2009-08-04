@@ -441,12 +441,12 @@ namespace SkeinFish
             {
                 // Resize output buffer to be evenly
                 // divisible by the block size
-                // (m_CipherBytes is always a power of 2 here,
-                // so we can just do the & trick with m_CipherBytes - 1
-                // to get a really small and probably insignificant speedup)
-                int output_size = inputCount + (m_CipherBytes - (inputCount & (m_CipherBytes - 1)));
-                Array.Resize(ref output, output_size);
-                
+                if (inputCount % m_CipherBytes != 0)
+                {
+                    int output_size = inputCount + (m_CipherBytes - (inputCount % m_CipherBytes));
+                    Array.Resize(ref output, output_size);
+                }
+                                
                 // Copy remaining bytes over to the output
                 for (int i = 0; i < remaining; i++)
                     output[i + total_done] = inputBuffer[inputOffset + total_done + i];
