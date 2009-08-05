@@ -407,7 +407,7 @@ namespace SkeinFish
 
                 total_done += done;
 
-            } while (done > m_CipherBytes);
+            } while (done == m_CipherBytes);
            
             return total_done;
         }
@@ -431,7 +431,7 @@ namespace SkeinFish
 
                 total_done += done;
 
-            } while (done > m_CipherBytes);
+            } while (done == m_CipherBytes);
 
             int remaining = inputCount - total_done;
 
