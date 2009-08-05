@@ -140,6 +140,8 @@ namespace SkeinFish
 
                     break;
             }
+
+            m_UsedStreamBytes = m_CipherBytes;
         }
 
         #region Utils
