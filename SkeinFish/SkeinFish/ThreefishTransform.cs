@@ -113,6 +113,8 @@ namespace SkeinFish
                 case CipherMode.CFB:
                     m_TransformFunc = e ? new TransformFunc(CFB_Encrypt) : new TransformFunc(CFB_Decrypt);
                     break;
+                case CipherMode.CTS:
+                    throw new CryptographicException("CTS mode not supported.");
             }
 
             // Set the key
