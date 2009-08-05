@@ -110,6 +110,9 @@ namespace SkeinFish
                 case CipherMode.OFB:
                     m_TransformFunc = new TransformFunc(OFB_ApplyStream);
                     break;
+                case CipherMode.CFB:
+                    m_TransformFunc = e ? new TransformFunc(CFB_Encrypt) : new TransformFunc(CFB_Decrypt);
+                    break;
             }
 
             // Set the key
@@ -306,6 +309,81 @@ namespace SkeinFish
             // Return bytes done
             return i;
         }
+
+        // CFB mode encryption
+        int CFB_Encrypt(byte[] input, int input_offset, int input_count, byte[] output, int output_offset)
+        {
+            int i;
+            byte b;
+
+            for (i = 0; i < input_count; i++)
+            {
+                // Generate new stream bytes if we've used
+                // them all up
+                if (m_UsedStreamBytes >= m_CipherBytes)
+                {
+                    // Copy cipher stream bytes to working block
+                    // (this is the feedback)
+                    GetBytes(m_StreamBytes, 0, m_Block, m_CipherBytes);
+                    // Process
+                    m_Cipher.Encrypt(m_Block, m_Block);
+                    // Put back
+                    PutBytes(m_Block, m_StreamBytes, 0, m_CipherBytes);
+                    // Reset for next time
+                    m_UsedStreamBytes = 0;
+                }
+
+                // XOR input byte with stream byte
+                b = (byte)(input[input_offset + i] ^ m_StreamBytes[m_UsedStreamBytes]);
+                // Output cipher byte
+                output[output_offset + i] = b;
+                // Put cipher byte into stream bytes for the feedback
+                m_StreamBytes[m_UsedStreamBytes] = b;
+
+                m_UsedStreamBytes++;
+            }
+
+            // Return bytes done
+            return i;
+        }
+
+        // CFB mode decryption
+        int CFB_Decrypt(byte[] input, int input_offset, int input_count, byte[] output, int output_offset)
+        {
+            int i;
+            byte b;
+
+            for (i = 0; i < input_count; i++)
+            {
+                // Generate new stream bytes if we've used
+                // them all up
+                if (m_UsedStreamBytes >= m_CipherBytes)
+                {
+                    // Copy cipher stream bytes to working block
+                    // (this is the feedback)
+                    GetBytes(m_StreamBytes, 0, m_Block, m_CipherBytes);
+                    // Process
+                    m_Cipher.Encrypt(m_Block, m_Block);
+                    // Put back
+                    PutBytes(m_Block, m_StreamBytes, 0, m_CipherBytes);
+                    // Reset for next time
+                    m_UsedStreamBytes = 0;
+                }
+
+                // Get ciphertext byte
+                b = input[input_offset + i];
+                // XOR input byte with stream byte, output plaintext
+                output[output_offset + i] = (byte)(b ^ m_StreamBytes[m_UsedStreamBytes]);
+                // Put ciphertext byte into stream bytes for the feedback
+                m_StreamBytes[m_UsedStreamBytes] = b;
+
+                m_UsedStreamBytes++;
+            }
+
+            // Return bytes done
+            return i;
+        }
+
 
         #endregion
 
