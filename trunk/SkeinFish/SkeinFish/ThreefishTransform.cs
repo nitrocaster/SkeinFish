@@ -141,6 +141,11 @@ namespace SkeinFish
                         m_Block[i] = m_IV[i];
 
                     break;
+
+                case CipherMode.CFB:
+                    // Copy IV to cipher stream bytes
+                    PutBytes(m_IV, m_StreamBytes, 0, m_CipherBytes);
+                    break;
             }
 
             m_UsedStreamBytes = m_CipherBytes;
