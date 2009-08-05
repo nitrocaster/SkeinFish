@@ -74,7 +74,6 @@ namespace SkeinFish
             m_Block = new ulong[m_CipherWords];
             m_TempBlock = new ulong[m_CipherWords];
             m_StreamBytes = new byte[m_CipherBytes];
-            m_UsedStreamBytes = m_CipherBytes;
 
             // Allocate IV and set value
             m_IV = new ulong[m_CipherWords];
