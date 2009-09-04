@@ -47,6 +47,11 @@ namespace SkeinFish
         UBIType m_PayloadType;
         UBITweak m_Tweak;
 
+        public int StateSize
+        {
+            get { return m_CipherStateBits; }
+        }
+
         public Skein(int state_size, int output_size)
         {
             // Make sure the output bit size > 0
@@ -62,21 +67,9 @@ namespace SkeinFish
 
             // Figure out which cipher we need based on
             // the state size
-            switch (state_size)
-            {
-                case 256:
-                    m_Cipher = new Threefish256();
-                    break;
-                case 512:
-                    m_Cipher = new Threefish512();
-                    break;
-                case 1024:
-                    m_Cipher = new Threefish1024();
-                    break;
+            m_Cipher = ThreefishCipher.CreateCipher(state_size);
+            if (m_Cipher == null) throw new CryptographicException("Unsupported state size.");
 
-                default:
-                    throw new CryptographicException("Unsupported state size.");
-            }
 
             // Allocate buffers
             m_InputBuffer = new byte[m_CipherStateBytes];
