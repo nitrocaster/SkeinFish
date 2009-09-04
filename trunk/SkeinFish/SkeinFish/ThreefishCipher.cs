@@ -98,6 +98,17 @@ namespace SkeinFish
             m_ExpandedKey[i] = parity;
         }
 
+        public static ThreefishCipher CreateCipher(int state_size)
+        {
+            switch (state_size)
+            {
+                case 256: return new Threefish256(); 
+                case 512: return new Threefish512();
+                case 1024: return new Threefish1024();
+            }
+            return null;
+        }
+
         abstract public void Encrypt(ulong[] input, ulong[] output);
         abstract public void Decrypt(ulong[] input, ulong[] output);
     }
