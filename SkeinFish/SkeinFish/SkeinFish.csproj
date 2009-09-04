@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F7C81EDE-7E55-4EAA-93FE-72885698E138}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -38,6 +38,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Skein.cs" />
+    <Compile Include="SkeinConfig.cs" />
     <Compile Include="Threefish.cs" />
     <Compile Include="Threefish1024.cs" />
     <Compile Include="Threefish256.cs" />

@@ -31,6 +31,7 @@ namespace SkeinFish
     public class Skein : HashAlgorithm
     {
         ThreefishCipher m_Cipher;
+        SkeinConfig m_Configuration;
 
         int m_CipherStateBits;
         int m_CipherStateBytes;
@@ -50,6 +51,11 @@ namespace SkeinFish
         public int StateSize
         {
             get { return m_CipherStateBits; }
+        }
+
+        public SkeinConfig Configuration
+        {
+            get { return m_Configuration; }
         }
 
         public Skein(int state_size, int output_size)
@@ -81,6 +87,13 @@ namespace SkeinFish
 
             // Set default payload type (regular straight hashing)
             m_PayloadType = UBIType.Message;
+
+
+            // Generate the configuration string
+            m_Configuration = new SkeinConfig(this);
+            m_Configuration.SetSchema("SHA3");
+            m_Configuration.SetVersion(1);
+            m_Configuration.GenerateConfiguration();
 
             // Initialize hash
             Initialize();
@@ -201,20 +214,9 @@ namespace SkeinFish
 
         public override void Initialize()
         {
-            // Clear state
+            // Copy the configuration value to the state
             for (int i = 0; i < m_State.Length; i++)
-                m_State[i] = 0;
-
-            // Initialize configuration block
-            m_CipherInput[0] = 0x133414853;
-            m_CipherInput[1] = (ulong) base.HashSizeValue;
-
-            // Set up tweak for configuration block
-            m_Tweak.StartNewType(UBIType.Config);
-            m_Tweak.SetFinalFlag(true);
-
-            // Process config block
-            ProcessBlock(32); // config block is actually 32 bytes
+                m_State[i] = m_Configuration.ConfigValue[i];
 
             // Set up tweak for message block
             m_Tweak.StartNewType(m_PayloadType);
