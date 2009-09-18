@@ -40,8 +40,8 @@ namespace SkeinFish
 
     public class UBITweak
     {
-        const ulong T1_FLAG_FINAL = (ulong)1 << 63;
-        const ulong T1_FLAG_FIRST = (ulong)1 << 62;
+        const ulong T1_FLAG_FINAL = unchecked((ulong)1 << 63);
+        const ulong T1_FLAG_FIRST = unchecked((ulong)1 << 62);
 
         ulong[] m_Tweak = new ulong[2];
 
