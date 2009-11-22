@@ -36,6 +36,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Presets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Skein.cs" />
     <Compile Include="SkeinConfig.cs" />
