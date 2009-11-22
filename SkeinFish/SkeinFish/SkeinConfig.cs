@@ -62,8 +62,9 @@ namespace SkeinFish
             cipher.SetTweak(tweak.Tweak);
             cipher.Encrypt(m_ConfigString, m_ConfigValue);
 
-            m_ConfigValue[0] ^= m_ConfigString[0];
+            m_ConfigValue[0] ^= m_ConfigString[0]; 
             m_ConfigValue[1] ^= m_ConfigString[1];
+            m_ConfigValue[2] ^= m_ConfigString[2];
         }
 
         public void SetSchema(byte[] schema)
@@ -96,6 +97,24 @@ namespace SkeinFish
 
             m_ConfigString[0] &= ~((ulong)0x03 << 32);
             m_ConfigString[0] |= (ulong)version << 32;
+        }
+
+        public void SetTreeLeafSize(byte size)
+        {
+            m_ConfigString[2] &= ~(ulong)0xff;
+            m_ConfigString[2] |= (ulong)size;
+        }
+
+        public void SetTreeFanOutSize(byte size)
+        {
+            m_ConfigString[2] &= ~((ulong)0xff << 8);
+            m_ConfigString[2] |= (ulong)size << 8;
+        }
+
+        public void SetMaxTreeHeight(byte height)
+        {
+            m_ConfigString[2] &= ~((ulong)0xff << 16);
+            m_ConfigString[2] |= (ulong)height << 16;
         }
 
         public ulong[] ConfigValue
