@@ -57,6 +57,15 @@ namespace SkeinFish
             m_Tweak[1] = (m_Tweak[1] & ~T1_FLAG_FINAL) | ((ulong)-mask & T1_FLAG_FINAL);
         }
 
+        public void SetTreeLevel(byte level)
+        {
+            if (level > 63)
+                throw new Exception("Tree level must be between 0 and 63, inclusive.");
+
+            m_Tweak[1] &= ~((ulong)0x3f << 48);
+            m_Tweak[1] |= (ulong)level << 48;
+        }
+
         public void IncrementCount(int amount)
         {
             m_Tweak[0] += (ulong)amount;
