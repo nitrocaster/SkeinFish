@@ -113,6 +113,9 @@ namespace SkeinFish
 
         public void SetMaxTreeHeight(byte height)
         {
+            if (height == 1)
+                throw new Exception("Tree height must be zero or greater than 1.");
+
             m_ConfigString[2] &= ~((ulong)0xff << 16);
             m_ConfigString[2] |= (ulong)height << 16;
         }
