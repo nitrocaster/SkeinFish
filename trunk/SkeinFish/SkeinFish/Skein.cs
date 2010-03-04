@@ -141,7 +141,7 @@ namespace SkeinFish
                 {
                     // Copy input buffer to cipher input buffer
                     GetBytes(m_InputBuffer, 0, m_CipherInput, m_CipherStateBytes);
-
+                    
                     // Process the block
                     ProcessBlock(m_CipherStateBytes);
 
