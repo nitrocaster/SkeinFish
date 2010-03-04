@@ -28,7 +28,7 @@ using System.Security.Cryptography;
 
 namespace SkeinFish
 {
-    public class Skein : HashAlgorithm
+    public partial class Skein : HashAlgorithm
     {
         ThreefishCipher m_Cipher;
         SkeinConfig m_Configuration;
@@ -182,7 +182,7 @@ namespace SkeinFish
             int j;
 
             byte[] hash = new byte[m_OutputBytes];
-            ulong[] old_state = new ulong[m_CipherStateBytes];
+            ulong[] old_state = new ulong[m_CipherStateWords];
 
             // Save old state
             for (j = 0; j < m_State.Length; j++)
