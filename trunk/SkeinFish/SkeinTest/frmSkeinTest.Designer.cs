@@ -28,12 +28,34 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
+            this.btnBenchmark = new System.Windows.Forms.Button();
+            this.SuspendLayout();
+            // 
+            // btnBenchmark
+            // 
+            this.btnBenchmark.Location = new System.Drawing.Point(12, 12);
+            this.btnBenchmark.Name = "btnBenchmark";
+            this.btnBenchmark.Size = new System.Drawing.Size(149, 46);
+            this.btnBenchmark.TabIndex = 0;
+            this.btnBenchmark.Text = "Benchmark";
+            this.btnBenchmark.UseVisualStyleBackColor = true;
+            this.btnBenchmark.Click += new System.EventHandler(this.btnBenchmark_Click);
+            // 
+            // frmSkeinTest
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Text = "Form1";
+            this.ClientSize = new System.Drawing.Size(525, 306);
+            this.Controls.Add(this.btnBenchmark);
+            this.Name = "frmSkeinTest";
+            this.Text = "Skein Test App";
+            this.ResumeLayout(false);
+
         }
 
         #endregion
+
+        private System.Windows.Forms.Button btnBenchmark;
     }
 }
 
