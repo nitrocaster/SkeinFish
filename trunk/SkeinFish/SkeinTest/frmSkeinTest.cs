@@ -19,10 +19,16 @@ namespace SkeinTest
 
         private void btnBenchmark_Click(object sender, EventArgs e)
         {
-            Skein512 skein = new Skein512();
-            double mbs;
+            Skein skein;
 
-            mbs = skein.Benchmark(400000);
+            if (rbSkein256.Checked)
+                skein = new Skein256();
+            else if (rbSkein512.Checked)
+                skein = new Skein512();
+            else
+                skein = new Skein1024();
+            
+            double mbs = skein.Benchmark(400000);
 
             MessageBox.Show("Result: " + mbs.ToString("0.00") + " mb/s");
         }
@@ -31,10 +37,10 @@ namespace SkeinTest
         {
             if (Skein.TestHash())
             {
-                label1.Text = "Skein hash tests PASSED.";
+                lblTestResult.Text = "Skein hash self-tests PASSED.";
             }
             else
-                label1.Text = "Skein hash tests FAILED.";
+                lblTestResult.Text = "Skein hash self-tests FAILED.";
         }
     }
 }

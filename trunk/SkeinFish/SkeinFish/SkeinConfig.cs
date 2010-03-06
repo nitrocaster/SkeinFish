@@ -44,7 +44,7 @@ namespace SkeinFish
 
             // Set the state size for the configuration
             m_ConfigString = new ulong[m_ConfigValue.Length];
-            m_ConfigString[1] = (ulong) source_hash.StateSize;
+            m_ConfigString[1] = (ulong) source_hash.HashSize;
         }
 
         public void GenerateConfiguration()
