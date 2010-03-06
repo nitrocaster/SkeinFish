@@ -57,12 +57,23 @@ namespace SkeinFish
         {
             get { return m_Configuration; }
         }
-
+        
+        /// <summary>
+        /// Initializes the Skein hash instance.
+        /// </summary>
+        /// <param name="state_size">The internal state size of the hash in bits.
+        /// Supported values are 256, 512, and 1024.</param>
+        /// <param name="output_size">The output size of the hash in bits.
+        /// Output size must be divisible by 8 and greater than zero.</param>
         public Skein(int state_size, int output_size)
         {
             // Make sure the output bit size > 0
             if (output_size <= 0)
                 throw new CryptographicException("Output bit size must be greater than zero.");
+
+            // Make sure output size is divisible by 8
+            if (output_size % 8 != 0)
+                throw new CryptographicException("Output bit size must be divisible by 8.");
 
             m_CipherStateBits = state_size;
             m_CipherStateBytes = state_size / 8;
@@ -75,8 +86,7 @@ namespace SkeinFish
             // the state size
             m_Cipher = ThreefishCipher.CreateCipher(state_size);
             if (m_Cipher == null) throw new CryptographicException("Unsupported state size.");
-
-
+            
             // Allocate buffers
             m_InputBuffer = new byte[m_CipherStateBytes];
             m_CipherInput = new ulong[m_CipherStateWords];
@@ -87,7 +97,6 @@ namespace SkeinFish
 
             // Set default payload type (regular straight hashing)
             m_PayloadType = UBIType.Message;
-
 
             // Generate the configuration string
             m_Configuration = new SkeinConfig(this);
@@ -108,7 +117,7 @@ namespace SkeinFish
                 Initialize();
             }
         }
-
+        
         void ProcessBlock(int bytes)
         {
             // Set the key to the current state
@@ -140,7 +149,8 @@ namespace SkeinFish
                 if (m_BytesFilled == m_CipherStateBytes)
                 {
                     // Copy input buffer to cipher input buffer
-                    GetBytes(m_InputBuffer, 0, m_CipherInput, m_CipherStateBytes);
+                   // GetBytes(m_InputBuffer, 0, m_CipherInput, m_CipherStateBytes);
+                    InputBufferToCipherInput();
                     
                     // Process the block
                     ProcessBlock(m_CipherStateBytes);
@@ -167,8 +177,8 @@ namespace SkeinFish
             for (i = m_BytesFilled; i < m_InputBuffer.Length; i++)
                 m_InputBuffer[i] = 0;
 
-            GetBytes(m_InputBuffer, 0, m_CipherInput, m_CipherStateBytes);
-
+            InputBufferToCipherInput();
+            
             // Do final message block
             m_Tweak.SetFinalFlag(true);
             ProcessBlock(m_BytesFilled);
@@ -222,6 +232,13 @@ namespace SkeinFish
             m_Tweak.StartNewType(m_PayloadType);
         }
 
+        // Moves the byte input buffer to the ulong cipher input
+        void InputBufferToCipherInput()
+        {
+            for (int i = 0; i < m_CipherStateWords; i++)
+                m_CipherInput[i] = GetUInt64(m_InputBuffer, i * 8);
+        }
+
         #region Utils
         static ulong GetUInt64(byte[] buf, int offset)
         {
@@ -235,14 +252,6 @@ namespace SkeinFish
             v |= (ulong)buf[offset + 6] << 48;
             v |= (ulong)buf[offset + 7] << 56;
             return v;
-        }
-
-        static void GetBytes(byte[] input, int offset, ulong[] output, int byte_count)
-        {
-            for (int i = 0; i < byte_count; i += 8)
-            {
-                output[i / 8] = GetUInt64(input, i + offset);
-            }
         }
 
         static void PutBytes(ulong[] input, byte[] output, int offset, int byte_count)
