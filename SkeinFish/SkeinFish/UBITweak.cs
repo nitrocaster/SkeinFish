@@ -33,7 +33,7 @@ namespace SkeinFish
         Config = 4,
         Personalization = 8,
         PublicKey = 12,
-        KDF = 16,
+        KeyIdentifier = 16,
         Nonce = 20,
         Message = 48,
         Out = 63
