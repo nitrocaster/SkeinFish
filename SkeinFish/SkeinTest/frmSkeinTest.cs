@@ -41,6 +41,7 @@ namespace SkeinTest
             }
             else
                 lblTestResult.Text = "Skein hash self-tests FAILED.";
+
         }
     }
 }
