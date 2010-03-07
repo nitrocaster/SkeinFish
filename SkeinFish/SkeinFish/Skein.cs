@@ -230,6 +230,9 @@ namespace SkeinFish
 
             // Set up tweak for message block
             m_Tweak.StartNewType(m_PayloadType);
+
+            // Reset bytes filled
+            m_BytesFilled = 0;
         }
 
         // Moves the byte input buffer to the ulong cipher input
