@@ -222,7 +222,7 @@ namespace SkeinFish
             return hash;
         }
 
-        public override void Initialize()
+        public sealed override void Initialize()
         {
             // Copy the configuration value to the state
             for (int i = 0; i < m_State.Length; i++)
