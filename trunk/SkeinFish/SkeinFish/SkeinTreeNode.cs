@@ -8,12 +8,13 @@ namespace SkeinFish
 {
     public class SkeinTreeNode
     {
-        private SkeinTreeNode[] _parentNodes;
+        private List<SkeinTreeNode> _parentNodes;
         private byte[] _nodeHash;
-        
-        public SkeinTreeNode(int maxParentNodes, int hashSize)
+        private bool _isLeaf;
+
+        public SkeinTreeNode(int hashSize)
         {
-            _parentNodes = new SkeinTreeNode[maxParentNodes];
+            _parentNodes = new List<SkeinTreeNode>();
             _nodeHash = new byte[hashSize];
         }
 
@@ -24,7 +25,7 @@ namespace SkeinFish
 
             skein.Initialize();
 
-            foreach(var node in _parentNodes.Where(n => n != null))
+            foreach(var node in _parentNodes)
             {
                 if (lastNode != null)
                 {
@@ -57,7 +58,7 @@ namespace SkeinFish
         {
             int maxLevel = 0;
 
-            foreach(var node in _parentNodes.Where(n => n != null))
+            foreach(var node in _parentNodes)
             {
                 int nodeLevel = node.LevelInternal();
                 maxLevel = Math.Max(nodeLevel, maxLevel);
@@ -71,7 +72,7 @@ namespace SkeinFish
             get { return LevelInternal(); }
         }
 
-        public SkeinTreeNode[] ParentNodes
+        public List<SkeinTreeNode> ParentNodes
         {
             get { return _parentNodes; }
         }
@@ -79,6 +80,13 @@ namespace SkeinFish
         public byte[] Hash
         {
             get { return _nodeHash; }
+            set { _nodeHash = value;  }
+        }
+
+        public bool IsLeaf
+        {
+            get { return _isLeaf; }
+            set { _isLeaf = value; }
         }
     }
 }

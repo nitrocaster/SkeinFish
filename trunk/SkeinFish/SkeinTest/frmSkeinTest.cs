@@ -28,7 +28,7 @@ namespace SkeinTest
             else
                 skein = new Skein1024();
             
-            double mbs = skein.Benchmark(400000);
+            double mbs = skein.Benchmark(600000);
 
             MessageBox.Show("Result: " + mbs.ToString("0.00") + " mb/s");
         }
@@ -42,14 +42,7 @@ namespace SkeinTest
             else
                 lblTestResult.Text = "Skein hash self-tests FAILED.";
 
-
-            SkeinTreeNode node = new SkeinTreeNode(2, 1);
-
-            var node2 = node.ParentNodes[0] = new SkeinTreeNode(2,1);
-            node.ParentNodes[1] = new SkeinTreeNode(2,1);
-            node2.ParentNodes[0] = new SkeinTreeNode(2,1);
-
-            MessageBox.Show(node.Verify().ToString());
+            HMACSkein hmac = new HMACSkein();
 
         }
     }

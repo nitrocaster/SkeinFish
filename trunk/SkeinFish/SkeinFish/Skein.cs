@@ -33,11 +33,11 @@ namespace SkeinFish
         ThreefishCipher m_Cipher;
         SkeinConfig m_Configuration;
 
-        int m_CipherStateBits;
-        int m_CipherStateBytes;
-        int m_CipherStateWords;
+        readonly int m_CipherStateBits;
+        readonly int m_CipherStateBytes;
+        readonly int m_CipherStateWords;
 
-        int m_OutputBytes;
+        readonly int m_OutputBytes;
 
         byte[] m_InputBuffer;
         int m_BytesFilled;
