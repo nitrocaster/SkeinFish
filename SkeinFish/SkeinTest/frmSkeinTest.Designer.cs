@@ -100,6 +100,7 @@
             this.btnBenchmark.TabIndex = 4;
             this.btnBenchmark.Text = "Benchmark";
             this.btnBenchmark.UseVisualStyleBackColor = true;
+            this.btnBenchmark.Click += new System.EventHandler(this.btnBenchmark_Click);
             // 
             // frmSkeinTest
             // 
