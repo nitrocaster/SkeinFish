@@ -50,13 +50,13 @@ namespace SkeinFish
         public void GenerateConfiguration()
         {
             var cipher = ThreefishCipher.CreateCipher(_stateSize);
-            var tweak = new UBITweak();
+            var tweak = new UbiTweak();
             var initialState = new ulong[_configValue.Length];
 
             // Initialize the tweak value
-            tweak.StartNewType(UBIType.Config);
+            tweak.StartNewType(UbiType.Config);
             tweak.SetFinalFlag(true);
-            tweak.IncrementCount(32);
+            tweak.BitsProcessed += 32;
 
             cipher.SetKey(initialState);
             cipher.SetTweak(tweak.Tweak);
