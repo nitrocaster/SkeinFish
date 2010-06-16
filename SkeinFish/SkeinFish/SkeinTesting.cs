@@ -64,9 +64,9 @@ namespace SkeinFish
         /// <returns>True if the test succeeded without errors, false otherwise.</returns>
         public static bool TestHash()
         {
-            Skein256 skein256 = new Skein256();
-            Skein512 skein512 = new Skein512();
-            Skein1024 skein1024 = new Skein1024();
+            var skein256 = new Skein256();
+            var skein512 = new Skein512();
+            var skein1024 = new Skein1024();
 
             byte[] result256 = {
                 0x90, 0xE5, 0x0C, 0x4D, 0xCF, 0xC7, 0x49, 0x0A, 
@@ -105,17 +105,19 @@ namespace SkeinFish
                 0xDB, 0xA6, 0xE5, 0x37, 0x7B, 0x0C, 0xC5, 0x72
             };
 
+            // Hashes are computed twice to make sure the hasher
+            // re-initializes itself properly
 
-            byte[] test_vector;
             byte[] hash;
             int i;
 
             // Make test vector for 256-bit hash
-            test_vector = new byte[64];
-            for (i = 0; i < test_vector.Length; i++)
-                test_vector[i] = (byte) (255 - i);
+            var testVector = new byte[64];
+            for (i = 0; i < testVector.Length; i++)
+                testVector[i] = (byte) (255 - i);
 
-            hash = skein256.ComputeHash(test_vector);
+            hash = skein256.ComputeHash(testVector);
+            hash = skein256.ComputeHash(testVector);
 
             // Compare with 256-bit test vector
             for (i = 0; i < result256.Length; i++)
@@ -123,17 +125,19 @@ namespace SkeinFish
             
 
             // Make the test vector for the 512 and 1024-bit hash
-            test_vector = new byte[128];
-            for (i = 0; i < test_vector.Length; i++)
-                test_vector[i] = (byte)(255 - i);
+            testVector = new byte[128];
+            for (i = 0; i < testVector.Length; i++)
+                testVector[i] = (byte)(255 - i);
 
-            hash = skein512.ComputeHash(test_vector);
+            hash = skein512.ComputeHash(testVector);
+            hash = skein512.ComputeHash(testVector);
 
             // Compare with 512-bit test vector
             for (i = 0; i < result512.Length; i++)
                 if (hash[i] != result512[i]) return false;
 
-            hash = skein1024.ComputeHash(test_vector);
+            hash = skein1024.ComputeHash(testVector);
+            hash = skein1024.ComputeHash(testVector);
 
             // Compare with 1024-bit test vector
             for (i = 0; i < result1024.Length; i++)

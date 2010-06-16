@@ -31,57 +31,57 @@ namespace SkeinFish
 {
     public class SkeinConfig
     {
-        int m_StateSize;
-        ulong[] m_ConfigString;
-        ulong[] m_ConfigValue;
+        private readonly int _stateSize;
+        private ulong[] _configString;
+        private ulong[] _configValue;
 
         public SkeinConfig(Skein sourceHash)
         {
-            m_StateSize = sourceHash.StateSize;
+            _stateSize = sourceHash.StateSize;
 
             // Allocate config value
-            m_ConfigValue = new ulong[sourceHash.StateSize / 8];
+            _configValue = new ulong[sourceHash.StateSize / 8];
 
             // Set the state size for the configuration
-            m_ConfigString = new ulong[m_ConfigValue.Length];
-            m_ConfigString[1] = (ulong) sourceHash.HashSize;
+            _configString = new ulong[_configValue.Length];
+            _configString[1] = (ulong) sourceHash.HashSize;
         }
 
         public void GenerateConfiguration()
         {
-            ThreefishCipher cipher = ThreefishCipher.CreateCipher(m_StateSize);
-            UBITweak tweak = new UBITweak();
-            ulong[] initial_state = new ulong[m_ConfigValue.Length];
+            var cipher = ThreefishCipher.CreateCipher(_stateSize);
+            var tweak = new UBITweak();
+            var initialState = new ulong[_configValue.Length];
 
             // Initialize the tweak value
             tweak.StartNewType(UBIType.Config);
             tweak.SetFinalFlag(true);
             tweak.IncrementCount(32);
 
-            cipher.SetKey(initial_state);
+            cipher.SetKey(initialState);
             cipher.SetTweak(tweak.Tweak);
-            cipher.Encrypt(m_ConfigString, m_ConfigValue);
+            cipher.Encrypt(_configString, _configValue);
 
-            m_ConfigValue[0] ^= m_ConfigString[0]; 
-            m_ConfigValue[1] ^= m_ConfigString[1];
-            m_ConfigValue[2] ^= m_ConfigString[2];
+            _configValue[0] ^= _configString[0]; 
+            _configValue[1] ^= _configString[1];
+            _configValue[2] ^= _configString[2];
         }
 
         public void SetSchema(params byte[] schema)
         {
             if (schema.Length != 4) throw new Exception("Schema must be 4 bytes.");
 
-            ulong n = m_ConfigString[0];
+            ulong n = _configString[0];
 
             // Clear the schema bytes
-            n &= ~(ulong)0xffffffff;
+            n &= ~(ulong)0xfffffffful;
             // Set schema bytes
             n |= (ulong) schema[3] << 24;
             n |= (ulong) schema[2] << 16;
             n |= (ulong) schema[1] << 8;
             n |= (ulong) schema[0];
 
-            m_ConfigString[0] = n;
+            _configString[0] = n;
         }
 
         public void SetVersion(int version)
@@ -89,20 +89,20 @@ namespace SkeinFish
             if (version < 0 || version > 3)
                 throw new Exception("Version must be between 0 and 3, inclusive.");
 
-            m_ConfigString[0] &= ~((ulong)0x03 << 32);
-            m_ConfigString[0] |= (ulong)version << 32;
+            _configString[0] &= ~((ulong)0x03 << 32);
+            _configString[0] |= (ulong)version << 32;
         }
 
         public void SetTreeLeafSize(byte size)
         {
-            m_ConfigString[2] &= ~(ulong)0xff;
-            m_ConfigString[2] |= (ulong)size;
+            _configString[2] &= ~(ulong)0xff;
+            _configString[2] |= (ulong)size;
         }
 
         public void SetTreeFanOutSize(byte size)
         {
-            m_ConfigString[2] &= ~((ulong)0xff << 8);
-            m_ConfigString[2] |= (ulong)size << 8;
+            _configString[2] &= ~((ulong)0xff << 8);
+            _configString[2] |= (ulong)size << 8;
         }
 
         public void SetMaxTreeHeight(byte height)
@@ -110,18 +110,18 @@ namespace SkeinFish
             if (height == 1)
                 throw new Exception("Tree height must be zero or greater than 1.");
 
-            m_ConfigString[2] &= ~((ulong)0xff << 16);
-            m_ConfigString[2] |= (ulong)height << 16;
+            _configString[2] &= ~((ulong)0xff << 16);
+            _configString[2] |= (ulong)height << 16;
         }
 
         public ulong[] ConfigValue
         {
-            get { return m_ConfigValue; }
+            get { return _configValue; }
         }
 
         public ulong[] ConfigString
         {
-            get { return m_ConfigString; }
+            get { return _configString; }
         }
     }
 }
