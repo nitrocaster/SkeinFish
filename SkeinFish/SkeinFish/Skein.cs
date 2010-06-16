@@ -30,8 +30,8 @@ namespace SkeinFish
 {
     public partial class Skein : HashAlgorithm
     {
-        readonly ThreefishCipher _cipher;
-        readonly SkeinConfig _configuration;
+        private readonly ThreefishCipher _cipher;
+        private readonly SkeinConfig _configuration;
 
         readonly int _cipherStateBits;
         readonly int _cipherStateBytes;
@@ -42,10 +42,10 @@ namespace SkeinFish
         readonly byte[] _inputBuffer;
         int _bytesFilled;
 
-        readonly ulong[] m_CipherInput;
+        readonly ulong[] _cipherInput;
         readonly ulong[] _state;
 
-        UBIType m_PayloadType;
+        UBIType _payloadType;
         readonly UBITweak _tweak;
 
         public int StateSize
@@ -89,14 +89,14 @@ namespace SkeinFish
             
             // Allocate buffers
             _inputBuffer = new byte[_cipherStateBytes];
-            m_CipherInput = new ulong[_cipherStateWords];
+            _cipherInput = new ulong[_cipherStateWords];
             _state = new ulong[_cipherStateWords];
 
             // Allocate tweak
             _tweak = new UBITweak();
 
             // Set default payload type (regular straight hashing)
-            m_PayloadType = UBIType.Message;
+            _payloadType = UBIType.Message;
 
             // Generate the configuration string
             _configuration = new SkeinConfig(this);
@@ -110,10 +110,10 @@ namespace SkeinFish
 
         public UBIType UBIPayloadType
         {
-            get { return m_PayloadType; }
+            get { return _payloadType; }
             set
             {
-                m_PayloadType = value;
+                _payloadType = value;
                 Initialize();
             }
         }
@@ -128,11 +128,11 @@ namespace SkeinFish
             _cipher.SetTweak(_tweak.Tweak);
 
             // Encrypt block
-            _cipher.Encrypt(m_CipherInput, _state);
+            _cipher.Encrypt(_cipherInput, _state);
 
             // Feed-forward input with state
-            for (int i = 0; i < m_CipherInput.Length; i++)
-                _state[i] ^= m_CipherInput[i];
+            for (int i = 0; i < _cipherInput.Length; i++)
+                _state[i] ^= _cipherInput[i];
         }
 
         protected override void HashCore(byte[] array, int ibStart, int cbSize)
@@ -147,7 +147,7 @@ namespace SkeinFish
                 if (_bytesFilled == _cipherStateBytes)
                 {
                     // Copy input buffer to cipher input buffer
-                   // GetBytes(_inputBuffer, 0, m_CipherInput, _cipherStateBytes);
+                   // GetBytes(_inputBuffer, 0, _cipherInput, _cipherStateBytes);
                     InputBufferToCipherInput();
                     
                     // Process the block
@@ -182,8 +182,8 @@ namespace SkeinFish
             ProcessBlock(_bytesFilled);
 
             // Clear cipher input
-            for (i = 0; i < m_CipherInput.Length; i++)
-                m_CipherInput[i] = 0;
+            for (i = 0; i < _cipherInput.Length; i++)
+                _cipherInput[i] = 0;
 
             // Do output block counter mode output
             int j;
@@ -213,7 +213,7 @@ namespace SkeinFish
                     _state[j] = oldState[j];
 
                 // Increment counter
-                m_CipherInput[0]++;
+                _cipherInput[0]++;
             }
                                     
             return hash;
@@ -226,7 +226,7 @@ namespace SkeinFish
                 _state[i] = _configuration.ConfigValue[i];
 
             // Set up tweak for message block
-            _tweak.StartNewType(m_PayloadType);
+            _tweak.StartNewType(_payloadType);
 
             // Reset bytes filled
             _bytesFilled = 0;
@@ -236,7 +236,7 @@ namespace SkeinFish
         void InputBufferToCipherInput()
         {
             for (int i = 0; i < _cipherStateWords; i++)
-                m_CipherInput[i] = GetUInt64(_inputBuffer, i * 8);
+                _cipherInput[i] = GetUInt64(_inputBuffer, i * 8);
         }
 
         #region Utils
