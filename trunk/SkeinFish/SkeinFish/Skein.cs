@@ -45,8 +45,8 @@ namespace SkeinFish
         readonly ulong[] _cipherInput;
         readonly ulong[] _state;
 
-        UBIType _payloadType;
-        readonly UBITweak _tweak;
+        UbiType _payloadType;
+        readonly UbiTweak _tweak;
 
         public int StateSize
         {
@@ -93,10 +93,10 @@ namespace SkeinFish
             _state = new ulong[_cipherStateWords];
 
             // Allocate tweak
-            _tweak = new UBITweak();
+            _tweak = new UbiTweak();
 
             // Set default payload type (regular straight hashing)
-            _payloadType = UBIType.Message;
+            _payloadType = UbiType.Message;
 
             // Generate the configuration string
             _configuration = new SkeinConfig(this);
@@ -108,7 +108,7 @@ namespace SkeinFish
             Initialize();
         }
 
-        public UBIType UBIPayloadType
+        public UbiType UBIPayloadType
         {
             get { return _payloadType; }
             set
@@ -124,7 +124,7 @@ namespace SkeinFish
             _cipher.SetKey(_state);
 
             // Update tweak
-            _tweak.IncrementCount(bytes);
+            _tweak.BitsProcessed += (ulong) bytes;
             _cipher.SetTweak(_tweak.Tweak);
 
             // Encrypt block
@@ -197,7 +197,7 @@ namespace SkeinFish
 
             for (i = 0; i < _outputBytes; i += _cipherStateBytes)
             {
-                _tweak.StartNewType(UBIType.Out); 
+                _tweak.StartNewType(UbiType.Out); 
                 _tweak.SetFinalFlag(true);
                 ProcessBlock(8);
 

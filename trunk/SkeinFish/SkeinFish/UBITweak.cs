@@ -27,7 +27,7 @@ using System;
 
 namespace SkeinFish
 {
-    public enum UBIType : ulong
+    public enum UbiType : ulong
     {
         Key = 0,
         Config = 4,
@@ -39,23 +39,26 @@ namespace SkeinFish
         Out = 63
     }
 
-    public class UBITweak
+    public class UbiTweak
     {
         const ulong T1FlagFinal = unchecked((ulong)1 << 63);
         const ulong T1FlagFirst = unchecked((ulong)1 << 62);
 
-        ulong[] m_Tweak = new ulong[2];
+        public UbiTweak()
+        {
+            Tweak = new ulong[2];
+        }
 
         public void SetFirstFlag(bool enabled)
         {
             long mask = enabled ? 1 : 0;
-            m_Tweak[1] = (m_Tweak[1] & ~T1FlagFirst) | ((ulong)-mask & T1FlagFirst);
+            Tweak[1] = (Tweak[1] & ~T1FlagFirst) | ((ulong)-mask & T1FlagFirst);
         }
 
         public void SetFinalFlag(bool enabled)
         {
             long mask = enabled ? 1 : 0;
-            m_Tweak[1] = (m_Tweak[1] & ~T1FlagFinal) | ((ulong)-mask & T1FlagFinal);
+            Tweak[1] = (Tweak[1] & ~T1FlagFinal) | ((ulong)-mask & T1FlagFinal);
         }
 
         public void SetTreeLevel(byte level)
@@ -63,24 +66,25 @@ namespace SkeinFish
             if (level > 63)
                 throw new Exception("Tree level must be between 0 and 63, inclusive.");
 
-            m_Tweak[1] &= ~((ulong)0x3f << 48);
-            m_Tweak[1] |= (ulong)level << 48;
+            Tweak[1] &= ~((ulong)0x3f << 48);
+            Tweak[1] |= (ulong)level << 48;
         }
 
-        public void IncrementCount(int amount)
+        /// <summary>
+        /// The number of bits processed so far, inclusive.
+        /// </summary>
+        public ulong BitsProcessed
         {
-            m_Tweak[0] += (ulong)amount;
+            get { return Tweak[0]; }
+            set { Tweak[0] = value; }
         }
 
-        public void StartNewType(UBIType type)
+        public void StartNewType(UbiType type)
         {
-            m_Tweak[0] = 0;
-            m_Tweak[1] = ((ulong)type << 56) | T1FlagFirst;
+            BitsProcessed = 0;
+            Tweak[1] = ((ulong)type << 56) | T1FlagFirst;
         }
 
-        public ulong[] Tweak
-        {
-            get { return m_Tweak; }
-        }
+        public ulong[] Tweak { get; private set; }
     }
 }
