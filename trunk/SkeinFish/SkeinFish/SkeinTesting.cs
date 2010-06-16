@@ -37,8 +37,8 @@ namespace SkeinFish
         /// <returns>Resulting speed in megabytes per second.</returns>
         public double Benchmark(long iterations)
         {
-            byte[] hash = new byte[_outputBytes];
-            Stopwatch sw = new Stopwatch();
+            var hash = new byte[_outputBytes];
+            var sw = new Stopwatch();
 
             sw.Start();
             this.Initialize();
@@ -49,10 +49,10 @@ namespace SkeinFish
             this.TransformFinalBlock(hash, 0, _outputBytes);
             sw.Stop();
 
-            double ops_per_tick = iterations / (double)sw.ElapsedTicks;
-            double ops_per_sec = ops_per_tick * (double)TimeSpan.FromSeconds(1).Ticks;
+            double opsPerTick = iterations / (double)sw.ElapsedTicks;
+            double opsPerSec = opsPerTick * (double)TimeSpan.FromSeconds(1).Ticks;
 
-            double mbs = ops_per_sec * _cipherStateBytes / 1024 / 1024;
+            double mbs = opsPerSec * _cipherStateBytes / 1024 / 1024;
 
             return mbs;
         }
