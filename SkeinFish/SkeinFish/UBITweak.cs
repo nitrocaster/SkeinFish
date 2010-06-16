@@ -41,21 +41,21 @@ namespace SkeinFish
 
     public class UBITweak
     {
-        const ulong T1_FLAG_FINAL = unchecked((ulong)1 << 63);
-        const ulong T1_FLAG_FIRST = unchecked((ulong)1 << 62);
+        const ulong T1FlagFinal = unchecked((ulong)1 << 63);
+        const ulong T1FlagFirst = unchecked((ulong)1 << 62);
 
         ulong[] m_Tweak = new ulong[2];
 
         public void SetFirstFlag(bool enabled)
         {
             long mask = enabled ? 1 : 0;
-            m_Tweak[1] = (m_Tweak[1] & ~T1_FLAG_FIRST) | ((ulong)-mask & T1_FLAG_FIRST);
+            m_Tweak[1] = (m_Tweak[1] & ~T1FlagFirst) | ((ulong)-mask & T1FlagFirst);
         }
 
         public void SetFinalFlag(bool enabled)
         {
             long mask = enabled ? 1 : 0;
-            m_Tweak[1] = (m_Tweak[1] & ~T1_FLAG_FINAL) | ((ulong)-mask & T1_FLAG_FINAL);
+            m_Tweak[1] = (m_Tweak[1] & ~T1FlagFinal) | ((ulong)-mask & T1FlagFinal);
         }
 
         public void SetTreeLevel(byte level)
@@ -75,7 +75,7 @@ namespace SkeinFish
         public void StartNewType(UBIType type)
         {
             m_Tweak[0] = 0;
-            m_Tweak[1] = ((ulong)type << 56) | T1_FLAG_FIRST;
+            m_Tweak[1] = ((ulong)type << 56) | T1FlagFirst;
         }
 
         public ulong[] Tweak
