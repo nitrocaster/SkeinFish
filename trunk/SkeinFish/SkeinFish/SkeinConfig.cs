@@ -35,16 +35,16 @@ namespace SkeinFish
         ulong[] m_ConfigString;
         ulong[] m_ConfigValue;
 
-        public SkeinConfig(Skein source_hash)
+        public SkeinConfig(Skein sourceHash)
         {
-            m_StateSize = source_hash.StateSize;
+            m_StateSize = sourceHash.StateSize;
 
             // Allocate config value
-            m_ConfigValue = new ulong[source_hash.StateSize / 8];
+            m_ConfigValue = new ulong[sourceHash.StateSize / 8];
 
             // Set the state size for the configuration
             m_ConfigString = new ulong[m_ConfigValue.Length];
-            m_ConfigString[1] = (ulong) source_hash.HashSize;
+            m_ConfigString[1] = (ulong) sourceHash.HashSize;
         }
 
         public void GenerateConfiguration()
@@ -67,7 +67,7 @@ namespace SkeinFish
             m_ConfigValue[2] ^= m_ConfigString[2];
         }
 
-        public void SetSchema(byte[] schema)
+        public void SetSchema(params byte[] schema)
         {
             if (schema.Length != 4) throw new Exception("Schema must be 4 bytes.");
 
@@ -82,12 +82,6 @@ namespace SkeinFish
             n |= (ulong) schema[0];
 
             m_ConfigString[0] = n;
-        }
-
-        public void SetSchema(string schema)
-        {
-            byte[] schema_bytes = ASCIIEncoding.ASCII.GetBytes(schema);
-            SetSchema(schema_bytes);
         }
 
         public void SetVersion(int version)
