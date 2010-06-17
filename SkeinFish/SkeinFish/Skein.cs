@@ -27,6 +27,35 @@ using System.Security.Cryptography;
 
 namespace SkeinFish
 {
+    /// <summary>
+    /// Specifies the Skein initialization type.
+    /// </summary>
+    public enum SkeinInitializationType
+    {
+        /// <summary>
+        /// Identical to the standard Skein initialization.
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// Creates the initial state with zeros instead of the configuration block, then initializes the hash.
+        /// This does not start a new UBI block type, and must be done manually.
+        /// </summary>
+        ZeroedState,
+
+        /// <summary>
+        /// Leaves the initial state set to its previous value, which is then chained with subsequent block transforms.
+        /// This does not start a new UBI block type, and must be done manually.
+        /// </summary>
+        ChainedState,
+
+        /// <summary>
+        /// Creates the initial state by chaining the previous state value with the config block, then initializes the hash.
+        /// This starts a new UBI block type with the standard Payload type.
+        /// </summary>
+        ChainedConfig
+    }
+
     public class Skein : HashAlgorithm
     {
         private readonly ThreefishCipher _cipher;
@@ -200,26 +229,35 @@ namespace SkeinFish
         /// Creates the initial state with zeros instead of the configuration block, then initializes the hash.
         /// This does not start a new UBI block type, and must be done manually.
         /// </summary>
-        public void InitializeZeroed()
+        public void Initialize(SkeinInitializationType initializationType)
         {
-            // Copy the configuration value to the state
-            for (int i = 0; i < _state.Length; i++)
-                _state[i] = 0;
+            switch(initializationType)
+            {
+                case SkeinInitializationType.Normal:
+                    // Normal initialization
+                    Initialize();
+                    return;
+
+                case SkeinInitializationType.ZeroedState:
+                    // Copy the configuration value to the state
+                    for (int i = 0; i < _state.Length; i++)
+                        _state[i] = 0;
+                    break;
+
+                case SkeinInitializationType.ChainedState:
+                    // Keep the state as it is and do nothing
+                    break;
+
+                case SkeinInitializationType.ChainedConfig:
+                    // Generate a chained configuration
+                    Configuration.GenerateConfiguration(_state);
+                    // Continue initialization
+                    Initialize();
+                    return;
+            }
 
             // Reset bytes filled
             _bytesFilled = 0;
-        }
-
-        /// <summary>
-        /// Creates the initial state by chaining the previous state value with the config block, then initializes the hash.
-        /// </summary>
-        public void InitializeChained()
-        {
-            // Generate a chained configuration
-            Configuration.GenerateConfiguration(_state);
-
-            // Continue initialization
-            Initialize();
         }
 
         public sealed override void Initialize()
