@@ -196,6 +196,10 @@ namespace SkeinFish
             return hash;
         }
 
+        /// <summary>
+        /// Creates the initial state with zeros instead of the configuration block, then initializes the hash.
+        /// This does not start a new UBI block type, and must be done manually.
+        /// </summary>
         public void InitializeZeroed()
         {
             // Copy the configuration value to the state
@@ -206,6 +210,9 @@ namespace SkeinFish
             _bytesFilled = 0;
         }
 
+        /// <summary>
+        /// Creates the initial state by chaining the previous state value with the config block, then initializes the hash.
+        /// </summary>
         public void InitializeChained()
         {
             // Generate a chained configuration
