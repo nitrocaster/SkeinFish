@@ -58,14 +58,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="HMACSkein.cs" />
     <Compile Include="Presets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Skein.cs" />
     <Compile Include="SkeinConfig.cs" />
     <Compile Include="SkeinTesting.cs" />
-    <Compile Include="SkeinTreeHash.cs" />
-    <Compile Include="SkeinTreeNode.cs" />
     <Compile Include="Threefish.cs" />
     <Compile Include="Threefish1024.cs" />
     <Compile Include="Threefish256.cs" />

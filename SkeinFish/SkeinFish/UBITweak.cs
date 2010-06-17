@@ -41,37 +41,58 @@ namespace SkeinFish
 
     public class UbiTweak
     {
-        const ulong T1FlagFinal = unchecked((ulong)1 << 63);
-        const ulong T1FlagFirst = unchecked((ulong)1 << 62);
+        private const ulong T1FlagFinal = unchecked((ulong)1 << 63);
+        private const ulong T1FlagFirst = unchecked((ulong)1 << 62);
 
         public UbiTweak()
         {
             Tweak = new ulong[2];
         }
 
-        public void SetFirstFlag(bool enabled)
+        /// <summary>
+        /// Gets or sets the first block flag.
+        /// </summary>
+        public bool IsFirstBlock
         {
-            long mask = enabled ? 1 : 0;
-            Tweak[1] = (Tweak[1] & ~T1FlagFirst) | ((ulong)-mask & T1FlagFirst);
-        }
-
-        public void SetFinalFlag(bool enabled)
-        {
-            long mask = enabled ? 1 : 0;
-            Tweak[1] = (Tweak[1] & ~T1FlagFinal) | ((ulong)-mask & T1FlagFinal);
-        }
-
-        public void SetTreeLevel(byte level)
-        {
-            if (level > 63)
-                throw new Exception("Tree level must be between 0 and 63, inclusive.");
-
-            Tweak[1] &= ~((ulong)0x3f << 48);
-            Tweak[1] |= (ulong)level << 48;
+            get { return (Tweak[1] & T1FlagFirst) != 0; }
+            set
+            {
+                long mask = value ? 1 : 0;
+                Tweak[1] = (Tweak[1] & ~T1FlagFirst) | ((ulong)-mask & T1FlagFirst);
+            }
         }
 
         /// <summary>
-        /// The number of bits processed so far, inclusive.
+        /// Gets or sets the final block flag.
+        /// </summary>
+        public bool IsFinalBlock
+        {
+            get { return (Tweak[1] & T1FlagFinal) != 0; }
+            set
+            {
+                long mask = value ? 1 : 0;
+                Tweak[1] = (Tweak[1] & ~T1FlagFinal) | ((ulong)-mask & T1FlagFinal);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the current tree level.
+        /// </summary>
+        public byte TreeLevel
+        {
+            get { return (byte) ((Tweak[1] >> 48) & 0x3f); }
+            set
+            {
+                if (value > 63)
+                    throw new Exception("Tree level must be between 0 and 63, inclusive.");
+
+                Tweak[1] &= ~((ulong) 0x3f << 48);
+                Tweak[1] |= (ulong) value << 48;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the number of bits processed so far, inclusive.
         /// </summary>
         public ulong BitsProcessed
         {
@@ -79,12 +100,29 @@ namespace SkeinFish
             set { Tweak[0] = value; }
         }
 
-        public void StartNewType(UbiType type)
+        /// <summary>
+        /// Gets or sets the current UBI block type.
+        /// </summary>
+        public UbiType BlockType
         {
-            BitsProcessed = 0;
-            Tweak[1] = ((ulong)type << 56) | T1FlagFirst;
+            get { return (UbiType) (Tweak[1] >> 56); }
+            set { Tweak[1] = (ulong)value << 56; }
         }
 
+        /// <summary>
+        /// Starts a new UBI block type by setting BitsProcessed to zero, setting the first flag, and setting the block type.
+        /// </summary>
+        /// <param name="type">The UBI block type of the new block.</param>
+        public void StartNewBlockType(UbiType type)
+        {
+            BitsProcessed = 0;
+            BlockType = type;
+            IsFirstBlock = true;
+        }
+
+        /// <summary>
+        /// The current Threefish tweak value.
+        /// </summary>
         public ulong[] Tweak { get; private set; }
     }
 }

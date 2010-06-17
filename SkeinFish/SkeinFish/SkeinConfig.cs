@@ -24,54 +24,67 @@ OTHER DEALINGS IN THE SOFTWARE.
 */
 
 using System;
-using System.Text;
-using System.Security.Cryptography;
 
 namespace SkeinFish
 {
     public class SkeinConfig
     {
         private readonly int _stateSize;
-        private ulong[] _configString;
-        private ulong[] _configValue;
 
         public SkeinConfig(Skein sourceHash)
         {
             _stateSize = sourceHash.StateSize;
 
             // Allocate config value
-            _configValue = new ulong[sourceHash.StateSize / 8];
+            ConfigValue = new ulong[sourceHash.StateSize / 8];
 
             // Set the state size for the configuration
-            _configString = new ulong[_configValue.Length];
-            _configString[1] = (ulong) sourceHash.HashSize;
+            ConfigString = new ulong[ConfigValue.Length];
+            ConfigString[1] = (ulong) sourceHash.HashSize;
         }
 
         public void GenerateConfiguration()
         {
             var cipher = ThreefishCipher.CreateCipher(_stateSize);
             var tweak = new UbiTweak();
-            var initialState = new ulong[_configValue.Length];
 
             // Initialize the tweak value
-            tweak.StartNewType(UbiType.Config);
-            tweak.SetFinalFlag(true);
-            tweak.BitsProcessed += 32;
+            tweak.StartNewBlockType(UbiType.Config);
+            tweak.IsFinalBlock = true;
+            tweak.BitsProcessed = 32;
+
+            cipher.SetTweak(tweak.Tweak);
+            cipher.Encrypt(ConfigString, ConfigValue);
+
+            ConfigValue[0] ^= ConfigString[0]; 
+            ConfigValue[1] ^= ConfigString[1];
+            ConfigValue[2] ^= ConfigString[2];
+        }
+
+        public void GenerateConfiguration(ulong[] initialState)
+        {
+            var cipher = ThreefishCipher.CreateCipher(_stateSize);
+            var tweak = new UbiTweak();
+
+            // Initialize the tweak value
+            tweak.StartNewBlockType(UbiType.Config);
+            tweak.IsFinalBlock = true;
+            tweak.BitsProcessed = 32;
 
             cipher.SetKey(initialState);
             cipher.SetTweak(tweak.Tweak);
-            cipher.Encrypt(_configString, _configValue);
+            cipher.Encrypt(ConfigString, ConfigValue);
 
-            _configValue[0] ^= _configString[0]; 
-            _configValue[1] ^= _configString[1];
-            _configValue[2] ^= _configString[2];
+            ConfigValue[0] ^= ConfigString[0];
+            ConfigValue[1] ^= ConfigString[1];
+            ConfigValue[2] ^= ConfigString[2];
         }
 
         public void SetSchema(params byte[] schema)
         {
             if (schema.Length != 4) throw new Exception("Schema must be 4 bytes.");
 
-            ulong n = _configString[0];
+            ulong n = ConfigString[0];
 
             // Clear the schema bytes
             n &= ~(ulong)0xfffffffful;
@@ -81,7 +94,7 @@ namespace SkeinFish
             n |= (ulong) schema[1] << 8;
             n |= (ulong) schema[0];
 
-            _configString[0] = n;
+            ConfigString[0] = n;
         }
 
         public void SetVersion(int version)
@@ -89,20 +102,20 @@ namespace SkeinFish
             if (version < 0 || version > 3)
                 throw new Exception("Version must be between 0 and 3, inclusive.");
 
-            _configString[0] &= ~((ulong)0x03 << 32);
-            _configString[0] |= (ulong)version << 32;
+            ConfigString[0] &= ~((ulong)0x03 << 32);
+            ConfigString[0] |= (ulong)version << 32;
         }
 
         public void SetTreeLeafSize(byte size)
         {
-            _configString[2] &= ~(ulong)0xff;
-            _configString[2] |= (ulong)size;
+            ConfigString[2] &= ~(ulong)0xff;
+            ConfigString[2] |= (ulong)size;
         }
 
         public void SetTreeFanOutSize(byte size)
         {
-            _configString[2] &= ~((ulong)0xff << 8);
-            _configString[2] |= (ulong)size << 8;
+            ConfigString[2] &= ~((ulong)0xff << 8);
+            ConfigString[2] |= (ulong)size << 8;
         }
 
         public void SetMaxTreeHeight(byte height)
@@ -110,18 +123,12 @@ namespace SkeinFish
             if (height == 1)
                 throw new Exception("Tree height must be zero or greater than 1.");
 
-            _configString[2] &= ~((ulong)0xff << 16);
-            _configString[2] |= (ulong)height << 16;
+            ConfigString[2] &= ~((ulong)0xff << 16);
+            ConfigString[2] |= (ulong)height << 16;
         }
 
-        public ulong[] ConfigValue
-        {
-            get { return _configValue; }
-        }
+        public ulong[] ConfigValue { get; private set; }
 
-        public ulong[] ConfigString
-        {
-            get { return _configString; }
-        }
+        public ulong[] ConfigString { get; private set; }
     }
 }

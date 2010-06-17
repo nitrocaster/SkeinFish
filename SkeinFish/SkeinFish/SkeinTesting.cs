@@ -28,8 +28,15 @@ using System.Diagnostics;
 
 namespace SkeinFish
 {
-    public partial class Skein
+    public class SkeinTesting
     {
+        private readonly Skein _sourceHash;
+
+        public SkeinTesting(Skein sourceHash)
+        {
+            _sourceHash = sourceHash;
+        }
+
         /// <summary>
         /// Benchmarks this instance of the Skein hash function.
         /// </summary>
@@ -37,22 +44,23 @@ namespace SkeinFish
         /// <returns>Resulting speed in megabytes per second.</returns>
         public double Benchmark(long iterations)
         {
-            var hash = new byte[_outputBytes];
+            var outputBytes = _sourceHash.HashSize/8;
+            var hash = new byte[outputBytes];
             var sw = new Stopwatch();
 
             sw.Start();
-            this.Initialize();
+            _sourceHash.Initialize();
+
             for (long i = 0; i < iterations; i++)
-            {
-                this.TransformBlock(hash, 0, _outputBytes, hash, 0);
-            }
-            this.TransformFinalBlock(hash, 0, _outputBytes);
+                _sourceHash.TransformBlock(hash, 0, outputBytes, hash, 0);
+
+            _sourceHash.TransformFinalBlock(hash, 0, outputBytes);
             sw.Stop();
 
             double opsPerTick = iterations / (double)sw.ElapsedTicks;
-            double opsPerSec = opsPerTick * (double)TimeSpan.FromSeconds(1).Ticks;
+            double opsPerSec = opsPerTick * TimeSpan.FromSeconds(1).Ticks;
 
-            double mbs = opsPerSec * _cipherStateBytes / 1024 / 1024;
+            double mbs = opsPerSec * (_sourceHash.StateSize / 8) / 1024 / 1024;
 
             return mbs;
         }
@@ -119,7 +127,7 @@ namespace SkeinFish
             hash = skein256.ComputeHash(testVector);
             hash = skein256.ComputeHash(testVector);
 
-            // Compare with 256-bit test vector
+            // Compare with 256-bit test vector)
             for (i = 0; i < result256.Length; i++)
                 if (hash[i] != result256[i]) return false;
             

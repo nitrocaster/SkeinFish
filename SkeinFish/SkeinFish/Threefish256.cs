@@ -23,20 +23,19 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using System;
-
 namespace SkeinFish
 {
     internal class Threefish256 : ThreefishCipher
     {
-        const int CIPHER_SIZE = 256;
-        const int CIPHER_QWORDS = CIPHER_SIZE / 64;
-        const int EXPANDED_KEY_SIZE = CIPHER_QWORDS + 1;
+        const int CipherSize = 256;
+        const int CipherQwords = CipherSize / 64;
+        const int ExpandedKeySize = CipherQwords + 1;
 
         public Threefish256()
         {
             // Create the expanded key array
-            m_ExpandedKey = new ulong[EXPANDED_KEY_SIZE];
+            ExpandedKey = new ulong[ExpandedKeySize];
+            ExpandedKey[ExpandedKeySize - 1] = KeyScheduleConst;
         }
 
         public override void Encrypt(ulong[] input, ulong[] output)
@@ -44,11 +43,11 @@ namespace SkeinFish
             // Cache the block, key, and tweak
             ulong b0 = input[0], b1 = input[1],
                   b2 = input[2], b3 = input[3];
-            ulong k0 = m_ExpandedKey[0], k1 = m_ExpandedKey[1],
-                  k2 = m_ExpandedKey[2], k3 = m_ExpandedKey[3],
-                  k4 = m_ExpandedKey[4];
-            ulong t0 = m_ExpandedTweak[0], t1 = m_ExpandedTweak[1],
-                  t2 = m_ExpandedTweak[2];
+            ulong k0 = ExpandedKey[0], k1 = ExpandedKey[1],
+                  k2 = ExpandedKey[2], k3 = ExpandedKey[3],
+                  k4 = ExpandedKey[4];
+            ulong t0 = ExpandedTweak[0], t1 = ExpandedTweak[1],
+                  t2 = ExpandedTweak[2];
 
             Mix(ref b0, ref b1, 14, k0, k1 + t0);
             Mix(ref b2, ref b3, 16, k2 + t1, k3);
@@ -206,11 +205,11 @@ namespace SkeinFish
             // Cache the block, key, and tweak
             ulong b0 = input[0], b1 = input[1],
                   b2 = input[2], b3 = input[3];
-            ulong k0 = m_ExpandedKey[0], k1 = m_ExpandedKey[1],
-                  k2 = m_ExpandedKey[2], k3 = m_ExpandedKey[3],
-                  k4 = m_ExpandedKey[4];
-            ulong t0 = m_ExpandedTweak[0], t1 = m_ExpandedTweak[1],
-                  t2 = m_ExpandedTweak[2];
+            ulong k0 = ExpandedKey[0], k1 = ExpandedKey[1],
+                  k2 = ExpandedKey[2], k3 = ExpandedKey[3],
+                  k4 = ExpandedKey[4];
+            ulong t0 = ExpandedTweak[0], t1 = ExpandedTweak[1],
+                  t2 = ExpandedTweak[2];
 
             b0 -= k3;
             b1 -= k4 + t0;
