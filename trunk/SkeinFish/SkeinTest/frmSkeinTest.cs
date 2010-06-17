@@ -10,6 +10,7 @@ using SkeinFish;
 
 namespace SkeinTest
 {
+
     public partial class frmSkeinTest : Form
     {
         public frmSkeinTest()
@@ -28,22 +29,15 @@ namespace SkeinTest
             else
                 skein = new Skein1024();
             
-            double mbs = skein.Benchmark(600000);
+            var test = new SkeinTesting(skein);
+            double mbs = test.Benchmark(600000);
 
             MessageBox.Show("Result: " + mbs.ToString("0.00") + " mb/s");
         }
 
         private void frmSkeinTest_Load(object sender, EventArgs e)
         {
-            if (Skein.TestHash())
-            {
-                lblTestResult.Text = "Skein hash self-tests PASSED.";
-            }
-            else
-                lblTestResult.Text = "Skein hash self-tests FAILED.";
-
-            HMACSkein hmac = new HMACSkein();
-
+            lblTestResult.Text = SkeinTesting.TestHash() ? "Skein hash self-tests PASSED." : "Skein hash self-tests FAILED.";
         }
     }
 }

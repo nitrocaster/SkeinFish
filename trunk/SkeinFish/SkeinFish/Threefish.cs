@@ -23,30 +23,29 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using System;
 using System.Security.Cryptography;
 
 namespace SkeinFish
 {
     public class Threefish : SymmetricAlgorithm
     {
-        const int DEFAULT_CIPHER_SIZE = 256;
+        const int DefaultCipherSize = 256;
 
         public Threefish()
         {
             // Set up supported key and block sizes for Threefish
-            KeySizes[] supported_sizes = 
+            KeySizes[] supportedSizes = 
             {
                 new KeySizes(256, 512, 256),
                 new KeySizes(1024, 1024, 0)
             };
 
-            base.LegalBlockSizesValue = supported_sizes;
-            base.LegalKeySizesValue   = supported_sizes;
+            base.LegalBlockSizesValue = supportedSizes;
+            base.LegalKeySizesValue   = supportedSizes;
 
             // Set up default sizes
-            base.KeySizeValue   = DEFAULT_CIPHER_SIZE;
-            base.BlockSizeValue = DEFAULT_CIPHER_SIZE;
+            base.KeySizeValue   = DefaultCipherSize;
+            base.BlockSizeValue = DefaultCipherSize;
 
             // ECB is the default for the other ciphers in
             // the standard library I think
@@ -75,10 +74,10 @@ namespace SkeinFish
 
         static byte[] GenerateRandomBytes(int amount)
         {
-            var rng_crypto = new RNGCryptoServiceProvider();
+            var rngCrypto = new RNGCryptoServiceProvider();
 
-            byte[] bytes = new byte[amount];
-            rng_crypto.GetBytes(bytes);
+            var bytes = new byte[amount];
+            rngCrypto.GetBytes(bytes);
 
             return bytes;
         }

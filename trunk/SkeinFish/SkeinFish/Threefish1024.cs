@@ -23,8 +23,6 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using System;
-
 namespace SkeinFish
 {
     internal class Threefish1024 : ThreefishCipher
@@ -36,7 +34,8 @@ namespace SkeinFish
         public Threefish1024()
         {
             // Create the expanded key array
-            m_ExpandedKey = new ulong[EXPANDED_KEY_SIZE];
+            ExpandedKey = new ulong[EXPANDED_KEY_SIZE];
+            ExpandedKey[EXPANDED_KEY_SIZE - 1] = KeyScheduleConst;
         }
 
         public override void Encrypt(ulong[] input, ulong[] output)
@@ -50,17 +49,17 @@ namespace SkeinFish
                   b10 = input[10], b11 = input[11],
                   b12 = input[12], b13 = input[13],
                   b14 = input[14], b15 = input[15];
-            ulong k0 = m_ExpandedKey[0], k1 = m_ExpandedKey[1],
-                  k2 = m_ExpandedKey[2], k3 = m_ExpandedKey[3],
-                  k4 = m_ExpandedKey[4], k5 = m_ExpandedKey[5],
-                  k6 = m_ExpandedKey[6], k7 = m_ExpandedKey[7],
-                  k8 = m_ExpandedKey[8], k9 = m_ExpandedKey[9],
-                  k10 = m_ExpandedKey[10], k11 = m_ExpandedKey[11],
-                  k12 = m_ExpandedKey[12], k13 = m_ExpandedKey[13],
-                  k14 = m_ExpandedKey[14], k15 = m_ExpandedKey[15],
-                  k16 = m_ExpandedKey[16];
-            ulong t0 = m_ExpandedTweak[0], t1 = m_ExpandedTweak[1],
-                  t2 = m_ExpandedTweak[2];
+            ulong k0 = ExpandedKey[0], k1 = ExpandedKey[1],
+                  k2 = ExpandedKey[2], k3 = ExpandedKey[3],
+                  k4 = ExpandedKey[4], k5 = ExpandedKey[5],
+                  k6 = ExpandedKey[6], k7 = ExpandedKey[7],
+                  k8 = ExpandedKey[8], k9 = ExpandedKey[9],
+                  k10 = ExpandedKey[10], k11 = ExpandedKey[11],
+                  k12 = ExpandedKey[12], k13 = ExpandedKey[13],
+                  k14 = ExpandedKey[14], k15 = ExpandedKey[15],
+                  k16 = ExpandedKey[16];
+            ulong t0 = ExpandedTweak[0], t1 = ExpandedTweak[1],
+                  t2 = ExpandedTweak[2];
 
 
             Mix(ref b0, ref b1, 24, k0, k1);
@@ -734,17 +733,17 @@ namespace SkeinFish
                   b10 = input[10], b11 = input[11],
                   b12 = input[12], b13 = input[13],
                   b14 = input[14], b15 = input[15];
-            ulong k0 = m_ExpandedKey[0], k1 = m_ExpandedKey[1],
-                  k2 = m_ExpandedKey[2], k3 = m_ExpandedKey[3],
-                  k4 = m_ExpandedKey[4], k5 = m_ExpandedKey[5],
-                  k6 = m_ExpandedKey[6], k7 = m_ExpandedKey[7],
-                  k8 = m_ExpandedKey[8], k9 = m_ExpandedKey[9],
-                  k10 = m_ExpandedKey[10], k11 = m_ExpandedKey[11],
-                  k12 = m_ExpandedKey[12], k13 = m_ExpandedKey[13],
-                  k14 = m_ExpandedKey[14], k15 = m_ExpandedKey[15],
-                  k16 = m_ExpandedKey[16];
-            ulong t0 = m_ExpandedTweak[0], t1 = m_ExpandedTweak[1],
-                  t2 = m_ExpandedTweak[2];
+            ulong k0 = ExpandedKey[0], k1 = ExpandedKey[1],
+                  k2 = ExpandedKey[2], k3 = ExpandedKey[3],
+                  k4 = ExpandedKey[4], k5 = ExpandedKey[5],
+                  k6 = ExpandedKey[6], k7 = ExpandedKey[7],
+                  k8 = ExpandedKey[8], k9 = ExpandedKey[9],
+                  k10 = ExpandedKey[10], k11 = ExpandedKey[11],
+                  k12 = ExpandedKey[12], k13 = ExpandedKey[13],
+                  k14 = ExpandedKey[14], k15 = ExpandedKey[15],
+                  k16 = ExpandedKey[16];
+            ulong t0 = ExpandedTweak[0], t1 = ExpandedTweak[1],
+                  t2 = ExpandedTweak[2];
 
             b0 -= k3;
             b1 -= k4;

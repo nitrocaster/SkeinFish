@@ -23,22 +23,19 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using System;
-using System.Security.Cryptography;
-
 namespace SkeinFish
 {
     internal abstract class ThreefishCipher
     {
-        protected const ulong KEY_SCHEDULE_CONST = 0x5555555555555555;
-        protected const int EXPANDED_TWEAK_SIZE = 3;
+        protected const ulong KeyScheduleConst = 0x5555555555555555;
+        protected const int ExpandedTweakSize = 3;
 
-        protected ulong[] m_ExpandedKey;
-        protected ulong[] m_ExpandedTweak;
+        protected ulong[] ExpandedKey;
+        protected ulong[] ExpandedTweak;
 
-        public ThreefishCipher()
+        protected ThreefishCipher()
         {
-            m_ExpandedTweak = new ulong[EXPANDED_TWEAK_SIZE];
+            ExpandedTweak = new ulong[ExpandedTweakSize];
         }
 
         protected static ulong RotateLeft64(ulong v, int b)
@@ -79,28 +76,28 @@ namespace SkeinFish
 
         public void SetTweak(ulong[] tweak)
         {
-            m_ExpandedTweak[0] = tweak[0];
-            m_ExpandedTweak[1] = tweak[1];
-            m_ExpandedTweak[2] = tweak[0] ^ tweak[1];
+            ExpandedTweak[0] = tweak[0];
+            ExpandedTweak[1] = tweak[1];
+            ExpandedTweak[2] = tweak[0] ^ tweak[1];
         }
 
         public void SetKey(ulong[] key)
         {
             int i;
-            ulong parity = KEY_SCHEDULE_CONST;
+            ulong parity = KeyScheduleConst;
 
-            for (i = 0; i < m_ExpandedKey.Length - 1; i++)
+            for (i = 0; i < ExpandedKey.Length - 1; i++)
             {
-                m_ExpandedKey[i] = key[i];
+                ExpandedKey[i] = key[i];
                 parity ^= key[i];
             }
 
-            m_ExpandedKey[i] = parity;
+            ExpandedKey[i] = parity;
         }
 
-        public static ThreefishCipher CreateCipher(int state_size)
+        public static ThreefishCipher CreateCipher(int stateSize)
         {
-            switch (state_size)
+            switch (stateSize)
             {
                 case 256: return new Threefish256(); 
                 case 512: return new Threefish512();

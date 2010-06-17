@@ -23,39 +23,32 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using System;
 using System.Security.Cryptography;
 
 namespace SkeinFish
 {
-    public partial class Skein : HashAlgorithm
+    public class Skein : HashAlgorithm
     {
         private readonly ThreefishCipher _cipher;
-        private readonly SkeinConfig _configuration;
+        
+        private readonly int _cipherStateBits;
+        private readonly int _cipherStateBytes;
+        private readonly int _cipherStateWords;
 
-        readonly int _cipherStateBits;
-        readonly int _cipherStateBytes;
-        readonly int _cipherStateWords;
+        private readonly int _outputBytes;
 
-        readonly int _outputBytes;
+        private readonly byte[] _inputBuffer;
+        private int _bytesFilled;
 
-        readonly byte[] _inputBuffer;
-        int _bytesFilled;
+        private readonly ulong[] _cipherInput;
+        private readonly ulong[] _state;
 
-        readonly ulong[] _cipherInput;
-        readonly ulong[] _state;
-
-        UbiType _payloadType;
-        readonly UbiTweak _tweak;
+        public SkeinConfig Configuration { get; private set; }
+        public UbiTweak UbiParameters { get; private set; }
 
         public int StateSize
         {
             get { return _cipherStateBits; }
-        }
-
-        public SkeinConfig Configuration
-        {
-            get { return _configuration; }
         }
         
         /// <summary>
@@ -93,39 +86,24 @@ namespace SkeinFish
             _state = new ulong[_cipherStateWords];
 
             // Allocate tweak
-            _tweak = new UbiTweak();
-
-            // Set default payload type (regular straight hashing)
-            _payloadType = UbiType.Message;
+            UbiParameters = new UbiTweak();
 
             // Generate the configuration string
-            _configuration = new SkeinConfig(this);
-            _configuration.SetSchema(83, 72, 65, 51); // "SHA3"
-            _configuration.SetVersion(1);
-            _configuration.GenerateConfiguration();
-
-            // Initialize hash
-            Initialize();
+            Configuration = new SkeinConfig(this);
+            Configuration.SetSchema(83, 72, 65, 51); // "SHA3"
+            Configuration.SetVersion(1);
+            Configuration.GenerateConfiguration();
         }
 
-        public UbiType UBIPayloadType
-        {
-            get { return _payloadType; }
-            set
-            {
-                _payloadType = value;
-                Initialize();
-            }
-        }
-        
+       
         void ProcessBlock(int bytes)
         {
             // Set the key to the current state
             _cipher.SetKey(_state);
 
             // Update tweak
-            _tweak.BitsProcessed += (ulong) bytes;
-            _cipher.SetTweak(_tweak.Tweak);
+            UbiParameters.BitsProcessed += (ulong) bytes;
+            _cipher.SetTweak(UbiParameters.Tweak);
 
             // Encrypt block
             _cipher.Encrypt(_cipherInput, _state);
@@ -147,15 +125,14 @@ namespace SkeinFish
                 if (_bytesFilled == _cipherStateBytes)
                 {
                     // Copy input buffer to cipher input buffer
-                   // GetBytes(_inputBuffer, 0, _cipherInput, _cipherStateBytes);
                     InputBufferToCipherInput();
                     
                     // Process the block
                     ProcessBlock(_cipherStateBytes);
 
-                    // Clear first flag, which may be set
+                    // Clear first flag, which will be set
                     // by Initialize() if this is the first transform
-                    _tweak.SetFirstFlag(false);
+                    UbiParameters.IsFirstBlock = false;
 
                     // Reset buffer fill count
                     _bytesFilled = 0;
@@ -178,7 +155,7 @@ namespace SkeinFish
             InputBufferToCipherInput();
             
             // Do final message block
-            _tweak.SetFinalFlag(true);
+            UbiParameters.IsFinalBlock = true;
             ProcessBlock(_bytesFilled);
 
             // Clear cipher input
@@ -197,8 +174,8 @@ namespace SkeinFish
 
             for (i = 0; i < _outputBytes; i += _cipherStateBytes)
             {
-                _tweak.StartNewType(UbiType.Out); 
-                _tweak.SetFinalFlag(true);
+                UbiParameters.StartNewBlockType(UbiType.Out);
+                UbiParameters.IsFinalBlock = true;
                 ProcessBlock(8);
 
                 // Output a chunk of the hash
@@ -219,14 +196,33 @@ namespace SkeinFish
             return hash;
         }
 
+        public void InitializeZeroed()
+        {
+            // Copy the configuration value to the state
+            for (int i = 0; i < _state.Length; i++)
+                _state[i] = 0;
+
+            // Reset bytes filled
+            _bytesFilled = 0;
+        }
+
+        public void InitializeChained()
+        {
+            // Generate a chained configuration
+            Configuration.GenerateConfiguration(_state);
+
+            // Continue initialization
+            Initialize();
+        }
+
         public sealed override void Initialize()
         {
             // Copy the configuration value to the state
             for (int i = 0; i < _state.Length; i++)
-                _state[i] = _configuration.ConfigValue[i];
+                _state[i] = Configuration.ConfigValue[i];
 
             // Set up tweak for message block
-            _tweak.StartNewType(_payloadType);
+            UbiParameters.StartNewBlockType(UbiType.Message);
 
             // Reset bytes filled
             _bytesFilled = 0;
@@ -242,7 +238,7 @@ namespace SkeinFish
         #region Utils
         static ulong GetUInt64(byte[] buf, int offset)
         {
-            ulong v = (ulong)buf[offset];
+            ulong v = buf[offset];
             v |= (ulong)buf[offset + 1] << 8;
             v |= (ulong)buf[offset + 2] << 16;
             v |= (ulong)buf[offset + 3] << 24;
