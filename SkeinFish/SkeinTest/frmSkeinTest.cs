@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using SkeinFish;
@@ -37,7 +36,8 @@ namespace SkeinTest
 
         private void frmSkeinTest_Load(object sender, EventArgs e)
         {
-            lblTestResult.Text = SkeinTesting.TestHash() ? "Skein hash self-tests PASSED." : "Skein hash self-tests FAILED.";
+            lblTestResult.Text = "Skein hash self-tests " + (SkeinTesting.TestHash() ? "PASSED." : "FAILED.");
+
         }
     }
 }
