@@ -17,7 +17,7 @@ static byte[] hash_skein(byte[] input)
 
 	// Set schema name, default for Skein is "SHA3"
 	// (must be 4 bytes long)
-	skein.Configuration.SetSchema("ABCD");
+	skein.Configuration.SetSchema(Encoding.ASCII.GetBytes("ABCD"));
 
 	// Set the schema version, default for Skein is 1
 	// (must be between 0 and 3, inclusive)	
