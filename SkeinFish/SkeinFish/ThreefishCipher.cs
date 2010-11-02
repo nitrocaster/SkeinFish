@@ -27,7 +27,7 @@ namespace SkeinFish
 {
     internal abstract class ThreefishCipher
     {
-        protected const ulong KeyScheduleConst = 0x5555555555555555;
+        protected const ulong KeyScheduleConst = 0x1BD11BDAA9FC1A22;
         protected const int ExpandedTweakSize = 3;
 
         protected ulong[] ExpandedKey;
