@@ -1,6 +1,6 @@
 # SkeinFish
 
-SkeinFish is an implementation of Skein and Threefish, with a focus on speed and completeness.
+SkeinFish is an implementation of [Skein](https://en.wikipedia.org/wiki/Skein_hash_function) and [Threefish](https://en.wikipedia.org/wiki/Threefish), with a focus on speed and completeness.
 Skein is a general purpose hash algorithm and Threefish is a general purpose block cipher.
 Both were designed by Bruce Schneier, among others. This is an implementation of both algorithms in C#. 
 
