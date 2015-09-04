@@ -28,7 +28,7 @@ using NUnit.Framework;
 namespace SkeinFish.Tests
 {
     [TestFixture]
-    class SkeinTesting
+    class SkeinTests
     {
         [Test]
         public void TestSkein256()
