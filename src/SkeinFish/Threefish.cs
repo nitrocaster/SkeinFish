@@ -47,9 +47,9 @@ namespace SkeinFish
             base.KeySizeValue   = DefaultCipherSize;
             base.BlockSizeValue = DefaultCipherSize;
 
-            // ECB is the default for the other ciphers in
-            // the standard library I think
-            base.ModeValue = CipherMode.ECB;
+            // CBC is the default for the other symmetric 
+            // ciphers in the standard library.
+            base.ModeValue = CipherMode.CBC;
         }
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
