@@ -444,12 +444,12 @@ namespace SkeinFish
                     break;
 
                 case PaddingMode.ISO10126:
-                    // Fill remaining bytes with random values
+                    // Fill remaining bytes with random values before the number of bytes padded
                     if (alreadyFilled < _cipherBytes)
                     {
                         var randBytes = new byte[_cipherBytes - alreadyFilled];
                         new RNGCryptoServiceProvider().GetBytes(randBytes);
-
+                        randBytes[randBytes.Length - 1] = (byte)randBytes.Length;
                         for (int i = alreadyFilled; i < _cipherBytes; i++)
                             input[i + inputOffset] = randBytes[i - alreadyFilled];
                     }
