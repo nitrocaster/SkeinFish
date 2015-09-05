@@ -105,7 +105,7 @@ namespace SkeinFish
         /// </summary>
         public UbiType BlockType
         {
-            get { return (UbiType) (Tweak[1] >> 56); }
+            get { return (UbiType)(Tweak[1] >> 56 & 0x3f); }
             set { Tweak[1] = (ulong)value << 56; }
         }
 
