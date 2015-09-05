@@ -23,7 +23,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System;
+using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using NUnit.Framework;
 
 namespace SkeinFish.Tests
@@ -315,6 +318,171 @@ namespace SkeinFish.Tests
             var cipher = enc.TransformFinalBlock(input, 0, input.Length);
             var decipher = dec.TransformFinalBlock(cipher, 0, cipher.Length);
             Assert.AreEqual(input, decipher);
+        }
+
+        [Test]
+        public void TestThreefish256EcbPkcs7Stream()
+        {
+            const string inputString = "Common salt is a mineral composed primarily of sodium chloride (NaCl), " +
+                "a chemical compound belonging to the larger class of salts; salt in its natural form as a crystalline " +
+                "mineral is known as rock salt or halite. Salt is present in vast quantities in seawater, where it is " +
+                "the main mineral constituent; the open ocean has about 35 grams (1.2 oz.) of solids per liter, a " +
+                "salinity of 3.5%.";
+            var inputBytes = Encoding.UTF8.GetBytes(inputString);
+            byte[] key = {
+                0, 0, 0, 0, 0, 0, 0, 0,
+                1, 0, 0, 0, 0, 0, 0, 0,
+                2, 0, 0, 0, 0, 0, 0, 0,
+                3, 0, 0, 0, 0, 0, 0, 0
+            };
+            var thf = new Threefish
+            {
+                BlockSize = 256,
+                Key = key,
+                IV = key,
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.PKCS7
+            };
+            var enc = thf.CreateEncryptor();
+            byte[] encBytes;
+            long encByteCount;
+            using (var cipherMs = new MemoryStream())
+            {
+                using (var cs = new CryptoStream(cipherMs, enc, CryptoStreamMode.Write))
+                {
+                    cs.Write(inputBytes, 0, inputBytes.Length);
+                    cs.FlushFinalBlock();
+                    encBytes = cipherMs.GetBuffer();
+                    encByteCount = cipherMs.Length;
+                }
+            }
+            var dec = thf.CreateDecryptor();
+            var decMs = new MemoryStream();
+            var buf = new byte[4096];
+            byte[] decBytes;
+            long decByteCount;
+            using (var cipherMs = new MemoryStream(encBytes, 0, (int)encByteCount))
+            {
+                using (var cs = new CryptoStream(cipherMs, dec, CryptoStreamMode.Read))
+                {
+                    for (int r; (r = cs.Read(buf, 0, buf.Length)) > 0;)
+                        decMs.Write(buf, 0, r);
+                    decBytes = decMs.GetBuffer();
+                    decByteCount = decMs.Length;
+                }
+            }
+            Array.Resize(ref decBytes, (int)decByteCount);
+            Assert.AreEqual(inputBytes, decBytes);
+        }
+
+        [Test]
+        public void TestThreefish256EcbAnsix923Stream()
+        {
+            const string inputString = "Common salt is a mineral composed primarily of sodium chloride (NaCl), " +
+                "a chemical compound belonging to the larger class of salts; salt in its natural form as a crystalline " +
+                "mineral is known as rock salt or halite. Salt is present in vast quantities in seawater, where it is " +
+                "the main mineral constituent; the open ocean has about 35 grams (1.2 oz.) of solids per liter, a " +
+                "salinity of 3.5%.";
+            var inputBytes = Encoding.UTF8.GetBytes(inputString);
+            byte[] key = {
+                0, 0, 0, 0, 0, 0, 0, 0,
+                1, 0, 0, 0, 0, 0, 0, 0,
+                2, 0, 0, 0, 0, 0, 0, 0,
+                3, 0, 0, 0, 0, 0, 0, 0
+            };
+            var thf = new Threefish
+            {
+                BlockSize = 256,
+                Key = key,
+                IV = key,
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.ANSIX923
+            };
+            var enc = thf.CreateEncryptor();
+            byte[] encBytes;
+            long encByteCount;
+            using (var cipherMs = new MemoryStream())
+            {
+                using (var cs = new CryptoStream(cipherMs, enc, CryptoStreamMode.Write))
+                {
+                    cs.Write(inputBytes, 0, inputBytes.Length);
+                    cs.FlushFinalBlock();
+                    encBytes = cipherMs.GetBuffer();
+                    encByteCount = cipherMs.Length;
+                }
+            }
+            var dec = thf.CreateDecryptor();
+            var decMs = new MemoryStream();
+            var buf = new byte[4096];
+            byte[] decBytes;
+            long decByteCount;
+            using (var cipherMs = new MemoryStream(encBytes, 0, (int)encByteCount))
+            {
+                using (var cs = new CryptoStream(cipherMs, dec, CryptoStreamMode.Read))
+                {
+                    for (int r; (r = cs.Read(buf, 0, buf.Length)) > 0; )
+                        decMs.Write(buf, 0, r);
+                    decBytes = decMs.GetBuffer();
+                    decByteCount = decMs.Length;
+                }
+            }
+            Array.Resize(ref decBytes, (int)decByteCount);
+            Assert.AreEqual(inputBytes, decBytes);
+        }
+
+        [Test]
+        public void TestThreefish256EcbIso10126Stream()
+        {
+            const string inputString = "Common salt is a mineral composed primarily of sodium chloride (NaCl), " +
+                "a chemical compound belonging to the larger class of salts; salt in its natural form as a crystalline " +
+                "mineral is known as rock salt or halite. Salt is present in vast quantities in seawater, where it is " +
+                "the main mineral constituent; the open ocean has about 35 grams (1.2 oz.) of solids per liter, a " +
+                "salinity of 3.5%.";
+            var inputBytes = Encoding.UTF8.GetBytes(inputString);
+            byte[] key = {
+                0, 0, 0, 0, 0, 0, 0, 0,
+                1, 0, 0, 0, 0, 0, 0, 0,
+                2, 0, 0, 0, 0, 0, 0, 0,
+                3, 0, 0, 0, 0, 0, 0, 0
+            };
+            var thf = new Threefish
+            {
+                BlockSize = 256,
+                Key = key,
+                IV = key,
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.ISO10126
+            };
+            var enc = thf.CreateEncryptor();
+            byte[] encBytes;
+            long encByteCount;
+            using (var cipherMs = new MemoryStream())
+            {
+                using (var cs = new CryptoStream(cipherMs, enc, CryptoStreamMode.Write))
+                {
+                    cs.Write(inputBytes, 0, inputBytes.Length);
+                    cs.FlushFinalBlock();
+                    encBytes = cipherMs.GetBuffer();
+                    encByteCount = cipherMs.Length;
+                }
+            }
+            var dec = thf.CreateDecryptor();
+            var decMs = new MemoryStream();
+            var buf = new byte[4096];
+            byte[] decBytes;
+            long decByteCount;
+            using (var cipherMs = new MemoryStream(encBytes, 0, (int)encByteCount))
+            {
+                using (var cs = new CryptoStream(cipherMs, dec, CryptoStreamMode.Read))
+                {
+                    for (int r; (r = cs.Read(buf, 0, buf.Length)) > 0; )
+                        decMs.Write(buf, 0, r);
+                    decBytes = decMs.GetBuffer();
+                    decByteCount = decMs.Length;
+                }
+            }
+            Array.Resize(ref decBytes, (int)decByteCount);
+            Assert.AreEqual(inputBytes, decBytes);
         }
     }
 }

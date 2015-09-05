@@ -40,6 +40,7 @@ namespace SkeinFish
         private readonly ThreefishCipher _cipher;
         private readonly TransformFunc _transformFunc;
 
+        private readonly ThreefishTransformType _transformType;
         private readonly CipherMode  _cipherMode;
         private readonly PaddingMode _paddingMode;
 
@@ -58,6 +59,7 @@ namespace SkeinFish
             byte[] key, byte[] iv, ThreefishTransformType type, CipherMode mode, PaddingMode padding
         )
         {
+            _transformType = type;
             _cipherMode    = mode;
             _paddingMode   = padding;
 
@@ -458,6 +460,47 @@ namespace SkeinFish
             }
         }
 
+        private byte[] UnpadBlock(byte[] input)
+        {
+            var output = input;
+            int padSize;
+            switch (_paddingMode)
+            {
+            case PaddingMode.None: break;
+            case PaddingMode.Zeros: break;
+            case PaddingMode.PKCS7:
+                padSize = input[input.Length - 1];
+                if (padSize > input.Length || padSize > InputBlockSize || padSize <= 0)
+                    throw new CryptographicException("PKCS7 invalid padding");
+                for (int i = 1; i <= padSize; i++)
+                {
+                    if (input[input.Length - i] != padSize)
+                        throw new CryptographicException("PKCS7 invalid padding");
+                }
+                output = new byte[input.Length - padSize];
+                Buffer.BlockCopy(input, 0, output, 0, output.Length);
+                break;
+            case PaddingMode.ANSIX923:
+                padSize = input[input.Length - 1];
+                if (padSize > input.Length || padSize > InputBlockSize || padSize <= 0)
+                    throw new CryptographicException("ANSIX923 invalid padding");
+                for (int i = 2; i <= padSize; i++) 
+                    if (output[input.Length - i] != 0)
+                        throw new CryptographicException("ANSIX923 invalid padding"); 
+                output = new byte[input.Length - padSize];
+                Buffer.BlockCopy(input, 0, output, 0, output.Length);
+                break;
+            case PaddingMode.ISO10126:
+                padSize = input[input.Length - 1];
+                if (padSize > input.Length || padSize > InputBlockSize || padSize <= 0)
+                    throw new CryptographicException("ISO10126 invalid padding"); 
+                output = new byte[input.Length - padSize];
+                Buffer.BlockCopy(input, 0, output, 0, output.Length);
+                break;
+            }
+            return output;
+        }
+
         public int TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
         {
             // Make sure the input count is evenly
@@ -510,7 +553,7 @@ namespace SkeinFish
 
             // Do the padding and the final transform if
             // there's any data left
-            if (totalDone < inputCount)
+            if (_transformType == ThreefishTransformType.Encrypt && totalDone < inputCount)
             {
                 // Resize output buffer to be evenly
                 // divisible by the block size
@@ -530,7 +573,8 @@ namespace SkeinFish
                 // Encrypt the block
                 _transformFunc(output, totalDone, _cipherBytes, output, totalDone);
             }
-
+            else
+                output = UnpadBlock(output);
             // Reinitialize the cipher
             InitializeBlocks();
 
