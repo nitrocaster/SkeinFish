@@ -21,6 +21,10 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+ 
+Bug fixes:
+Copyright (c) 2015 Pavel Kovalenko
+Same licence, etc. applies.
 */
 
 using System.Security.Cryptography;
@@ -122,6 +126,7 @@ namespace SkeinFish
             Configuration.SetSchema(83, 72, 65, 51); // "SHA3"
             Configuration.SetVersion(1);
             Configuration.GenerateConfiguration();
+            Initialize();
         }
 
        
