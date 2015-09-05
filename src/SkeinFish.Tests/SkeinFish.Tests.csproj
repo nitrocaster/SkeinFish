@@ -74,6 +74,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KatReader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SkeinTests.cs" />
     <Compile Include="ThreefishTests.cs" />
