@@ -179,6 +179,9 @@ namespace SkeinFish
 
         protected override byte[] HashFinal()
         {
+            // special case for empty MAC key
+            if (UbiParameters.BlockType == UbiType.Key && _bytesFilled == 0)
+                return null;
             int i;
 
             // Pad left over space in input buffer with zeros
