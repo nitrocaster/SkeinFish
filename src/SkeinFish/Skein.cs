@@ -122,6 +122,7 @@ namespace SkeinFish
             Configuration.SetSchema(83, 72, 65, 51); // "SHA3"
             Configuration.SetVersion(1);
             Configuration.GenerateConfiguration();
+            Initialize();
         }
 
        
