@@ -21,8 +21,13 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+
+Improvements and tweaks:
+Copyright (c) 2015 Pavel Kovalenko
+Same licence, etc. applies.
 */
 
+using System.Diagnostics;
 using NUnit.Framework;
 
 namespace SkeinFish.Tests
@@ -229,6 +234,35 @@ namespace SkeinFish.Tests
             };
             byte[] hash = skein1024.ComputeHash(message);
             Assert.AreEqual(goodHash, hash);
+        }
+
+        // Test vectors from the Skein 1.3 NIST CD
+        [Test]
+        public void TestSkeinGoldenKat()
+        {
+            var katReader = new KatReader("../../data/skein_golden_kat.txt");
+            var kr = new KatResult();
+            while (katReader.FillResult(kr))
+            {
+                // skip Three and uneven vectors
+                if (kr.TrailingChars.Contains("Tree") || kr.MsgLength % 8 != 0)
+                    continue;
+                var skein = new Skein(kr.StateSize, kr.HashBitLength);
+                if (kr.TrailingChars.Contains("MAC"))
+                {
+                    skein.Initialize(SkeinInitializationType.ZeroedState);
+                    skein.UbiParameters.StartNewBlockType(UbiType.Key);
+                    skein.TransformFinalBlock(kr.MacKey, 0, kr.MacKeyLen);
+                    skein.Initialize(SkeinInitializationType.ChainedConfig);
+                    skein.TransformFinalBlock(kr.Msg, 0, kr.MsgLength / 8);
+                    if (kr.Result[0] != skein.Hash[0])
+                        Debugger.Break();
+                    Assert.AreEqual(kr.Result, skein.Hash, "MAC mismatch (line {0})", katReader.CurrentLine);
+                    continue;
+                }
+                skein.ComputeHash(kr.Msg, 0, kr.MsgLength / 8);
+                Assert.AreEqual(kr.Result, skein.Hash, "Hash mismatch (line {0})", katReader.CurrentLine);
+            }
         }
     }
 }
