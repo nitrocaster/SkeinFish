@@ -32,7 +32,7 @@ using System.Security.Cryptography;
 
 namespace SkeinFish
 {
-    public enum ThreefishTransformType
+    public enum ThreefishTransformMode
     {
         Encrypt, Decrypt
     }
@@ -44,7 +44,7 @@ namespace SkeinFish
         private readonly ThreefishCipher _cipher;
         private readonly TransformFunc _transformFunc;
 
-        private readonly ThreefishTransformType _transformType;
+        private readonly ThreefishTransformMode _transformMode;
         private readonly CipherMode  _cipherMode;
         private readonly PaddingMode _paddingMode;
 
@@ -60,10 +60,10 @@ namespace SkeinFish
         private int _usedStreamBytes;
 
         public ThreefishTransform(
-            byte[] key, byte[] iv, ThreefishTransformType type, CipherMode mode, PaddingMode padding
+            byte[] key, byte[] iv, ThreefishTransformMode transform, CipherMode mode, PaddingMode padding
         )
         {
-            _transformType = type;
+            _transformMode = transform;
             _cipherMode    = mode;
             _paddingMode   = padding;
 
@@ -100,7 +100,7 @@ namespace SkeinFish
                     throw new CryptographicException("Unsupported key/block size.");
             }
 
-            bool e = (type == ThreefishTransformType.Encrypt);
+            bool e = (transform == ThreefishTransformMode.Encrypt);
 
             switch(_cipherMode)
             {
@@ -569,7 +569,7 @@ namespace SkeinFish
 
             // Do the padding and the final transform if
             // there's any data left
-            if (_transformType == ThreefishTransformType.Encrypt && totalDone < inputCount)
+            if (_transformMode == ThreefishTransformMode.Encrypt && totalDone < inputCount)
             {
                 // Resize output buffer to be evenly
                 // divisible by the block size

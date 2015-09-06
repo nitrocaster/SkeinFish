@@ -67,7 +67,7 @@ namespace SkeinFish
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformType.Decrypt, ModeValue, PaddingValue);
+            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformMode.Decrypt, ModeValue, PaddingValue);
             if (tweak != null)
                 tsm.InternalSetTweak(tweak);
             return tsm;
@@ -75,7 +75,7 @@ namespace SkeinFish
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformType.Encrypt, ModeValue, PaddingValue);
+            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformMode.Encrypt, ModeValue, PaddingValue);
             if (tweak != null)
                 tsm.InternalSetTweak(tweak);
             return tsm;
