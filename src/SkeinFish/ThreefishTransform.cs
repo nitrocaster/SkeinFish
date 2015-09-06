@@ -54,7 +54,9 @@ namespace SkeinFish
         private readonly ulong[] _block;
         private readonly ulong[] _tempBlock;
         private readonly ulong[] _iv;
-        
+
+        private readonly byte[] _depadBuffer;
+        private bool _depadBufferFilled = false;
         // Used when in a stream ciphering mode
         private readonly byte[] _streamBytes;
         private int _usedStreamBytes;
@@ -77,6 +79,7 @@ namespace SkeinFish
             _block = new ulong[_cipherWords];
             _tempBlock = new ulong[_cipherWords];
             _streamBytes = new byte[_cipherBytes];
+            _depadBuffer = new byte[_cipherBytes];
 
             // Allocate IV and set value
             _iv = new ulong[_cipherWords];
@@ -164,7 +167,7 @@ namespace SkeinFish
                     PutBytes(_iv, _streamBytes, 0, _cipherBytes);
                     break;
             }
-
+            _depadBufferFilled = false;
             _usedStreamBytes = _cipherBytes;
         }
 
@@ -526,76 +529,130 @@ namespace SkeinFish
 
             int totalDone = 0;
             int done;
-            // Apply as much of the transform as we can
-            do
+            if (_transformMode == ThreefishTransformMode.Encrypt ||
+                _paddingMode == PaddingMode.Zeros || _paddingMode == PaddingMode.None)
             {
-                done = _transformFunc(
-                    inputBuffer,
-                    inputOffset + totalDone,
-                    inputCount - totalDone,
-                    outputBuffer,
-                    outputOffset + totalDone
-                    );
+                // Apply as much of the transform as we can
+                do
+                {
+                    done = _transformFunc(
+                        inputBuffer,
+                        inputOffset + totalDone,
+                        inputCount - totalDone,
+                        outputBuffer,
+                        outputOffset + totalDone
+                        );
 
-                totalDone += done;
+                    totalDone += done;
 
-            } while (done == _cipherBytes);
-           
+                } while (done == _cipherBytes);
+            }
+            else
+            {
+                // check if we have depad buffer filled
+                if (!_depadBufferFilled)
+                {
+                    _depadBufferFilled = true;
+                    int inputToProcess = inputCount - _cipherBytes;
+                    Buffer.BlockCopy(inputBuffer, inputOffset + inputToProcess, _depadBuffer, 0, _cipherBytes);
+                    do
+                    {
+                        done = _transformFunc(inputBuffer, inputOffset + totalDone, inputToProcess - totalDone,
+                            outputBuffer, outputOffset + totalDone);
+                        totalDone += done;
+                    } while (done == _cipherBytes);
+                }
+                else
+                {
+                    totalDone += _transformFunc(_depadBuffer, 0, _cipherBytes, outputBuffer, outputOffset);
+                    outputOffset += _cipherBytes;
+                    int inputToProcess = inputCount - _cipherBytes;
+                    Buffer.BlockCopy(inputBuffer, inputOffset + inputToProcess, _depadBuffer, 0, _cipherBytes);
+                    do
+                    {
+                        done = _transformFunc(inputBuffer, inputOffset + totalDone, inputToProcess - totalDone,
+                            outputBuffer, outputOffset + totalDone);
+                        totalDone += done;
+                    } while (done == _cipherBytes);
+                }
+            }
             return totalDone;
         }
 
         public byte[] TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
         {
-            var output = new byte[inputCount];
-
             int totalDone = 0;
             int done;
-            // Apply as much of the transform as we can
-            do
-            {
-                done = _transformFunc(
-                    inputBuffer,
-                    inputOffset + totalDone,
-                    inputCount - totalDone,
-                    output,
-                    totalDone
-                    );
-
-                totalDone += done;
-
-            } while (done == _cipherBytes);
-
-            int remaining = inputCount - totalDone;
-
+            byte[] output;
             // Do the padding and the final transform if
             // there's any data left
-            if (_transformMode == ThreefishTransformMode.Encrypt && totalDone < inputCount)
+            if (_transformMode == ThreefishTransformMode.Encrypt)
             {
-                // Resize output buffer to be evenly
-                // divisible by the block size
-                if (inputCount % _cipherBytes != 0)
+                output = new byte[inputCount];
+                do
                 {
-                    int outputSize = inputCount + (_cipherBytes - (inputCount % _cipherBytes));
-                    Array.Resize(ref output, outputSize);
-                }
+                    done = _transformFunc(
+                        inputBuffer,
+                        inputOffset + totalDone,
+                        inputCount - totalDone,
+                        output,
+                        totalDone);
+                    totalDone += done;
+                } while (done == _cipherBytes);
+                int remaining = inputCount - totalDone;
+                if (totalDone < inputCount)
+                {
+                    // Resize output buffer to be evenly
+                    // divisible by the block size
+                    if (inputCount % _cipherBytes != 0)
+                    {
+                        int outputSize = inputCount + (_cipherBytes - (inputCount % _cipherBytes));
+                        Array.Resize(ref output, outputSize);
+                    }
                                 
-                // Copy remaining bytes over to the output
-                for (int i = 0; i < remaining; i++)
-                    output[i + totalDone] = inputBuffer[inputOffset + totalDone + i];
+                    // Copy remaining bytes over to the output
+                    for (int i = 0; i < remaining; i++)
+                        output[i + totalDone] = inputBuffer[inputOffset + totalDone + i];
 
-                // Pad the block
-                PadBlock(output, totalDone, remaining);
+                    // Pad the block
+                    PadBlock(output, totalDone, remaining);
 
-                // Encrypt the block
-                _transformFunc(output, totalDone, _cipherBytes, output, totalDone);
+                    // Encrypt the block
+                    _transformFunc(output, totalDone, _cipherBytes, output, totalDone);
+                }
             }
             else
+            {
+                if (inputCount % _cipherBytes != 0)
+                    throw new CryptographicException("inputCount must be divisible by the block size.");
+                // decrypt
+                if (!_depadBufferFilled)
+                {
+                    output = new byte[inputCount];
+                    do
+                    {
+                        done = _transformFunc(inputBuffer, inputOffset + totalDone, inputCount - totalDone,
+                            output, totalDone);
+                        totalDone += done;
+                    } while (done == _cipherBytes);
+                }
+                else
+                {
+                    var buf = new byte[_cipherBytes + inputCount];
+                    Buffer.BlockCopy(_depadBuffer, 0, buf, 0, _cipherBytes);
+                    Buffer.BlockCopy(inputBuffer, inputOffset, buf, _cipherBytes, inputCount);
+                    output = new byte[_cipherBytes + inputCount];
+                    do
+                    {
+                        done = _transformFunc(buf, totalDone, buf.Length - totalDone, output, totalDone);
+                        totalDone += done;
+                    } while (done == _cipherBytes);
+                }
                 output = UnpadBlock(output);
+            }
             // Reinitialize the cipher
             InitializeBlocks();
-
             return output;
-
         }
 
         #endregion
