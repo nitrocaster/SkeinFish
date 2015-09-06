@@ -128,6 +128,18 @@ namespace SkeinFish
             InitializeBlocks();
         }
 
+        public void SetTweak(ulong[] tweak)
+        {
+            if (tweak.Length != 2)
+                throw new ArgumentException("Tweak must be an array of two unsigned 64-bit integers.");
+            InternalSetTweak(tweak);
+        }
+
+        public void InternalSetTweak(ulong[] tweak)
+        {
+            _cipher.SetTweak(tweak);
+        }
+
         // (Re)initializes the blocks for encryption
         void InitializeBlocks()
         {

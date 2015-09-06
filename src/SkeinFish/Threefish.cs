@@ -21,8 +21,13 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
+
+Improvements and tweaks:
+Copyright (c) 2015 Pavel Kovalenko
+Same licence, etc. applies.
 */
 
+using System;
 using System.Security.Cryptography;
 
 namespace SkeinFish
@@ -30,6 +35,7 @@ namespace SkeinFish
     public class Threefish : SymmetricAlgorithm
     {
         const int DefaultCipherSize = 256;
+        private ulong[] tweak;
 
         public Threefish()
         {
@@ -52,14 +58,27 @@ namespace SkeinFish
             base.ModeValue = CipherMode.ECB;
         }
 
+        public void SetTweak(ulong[] newTweak)
+        {
+            if (newTweak.Length != 2)
+                throw new ArgumentException("Tweak must be an array of two unsigned 64-bit integers.");
+            tweak = newTweak;
+        }
+
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            return new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformType.Decrypt, ModeValue, PaddingValue);
+            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformType.Decrypt, ModeValue, PaddingValue);
+            if (tweak != null)
+                tsm.InternalSetTweak(tweak);
+            return tsm;
         }
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            return new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformType.Encrypt, ModeValue, PaddingValue);
+            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformType.Encrypt, ModeValue, PaddingValue);
+            if (tweak != null)
+                tsm.InternalSetTweak(tweak);
+            return tsm;
         }
 
         public override void GenerateIV()
