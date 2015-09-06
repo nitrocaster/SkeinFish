@@ -71,7 +71,7 @@ namespace SkeinFish
 
             _cipherBytes = key.Length;
             _cipherWords = key.Length / 8;
-            OutputBlockSize  = key.Length * 8;
+            OutputBlockSize  = key.Length;
 
             // Allocate working blocks now so that we don't
             // have to allocate them each time 
@@ -86,16 +86,16 @@ namespace SkeinFish
             GetBytes(iv, 0, _iv, _cipherBytes);
 
             // Figure out which cipher we need based on
-            // the cipher bit size
+            // the cipher byte size
             switch (OutputBlockSize)
             {
-                case 256:
+                case 256/8:
                     _cipher = new Threefish256();
                     break;
-                case 512:
+                case 512/8:
                     _cipher = new Threefish512();
                     break;
-                case 1024:
+                case 1024/8:
                     _cipher = new Threefish1024();
                     break;
 
