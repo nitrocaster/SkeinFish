@@ -661,7 +661,21 @@ namespace SkeinFish
 
         public void Dispose()
         {
-            // nothing to dispose
+            Dispose(true);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // reset fields with sensitive data
+                _cipher.Clear();
+                Array.Clear(_block, 0, _block.Length);
+                Array.Clear(_tempBlock, 0, _tempBlock.Length);
+                Array.Clear(_iv, 0, _iv.Length);
+                Array.Clear(_depadBuffer, 0, _depadBuffer.Length);
+                Array.Clear(_streamBytes, 0, _streamBytes.Length);
+            }
         }
 
         #endregion

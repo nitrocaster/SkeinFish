@@ -23,6 +23,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System;
+
 namespace SkeinFish
 {
     internal abstract class ThreefishCipher
@@ -93,6 +95,13 @@ namespace SkeinFish
             }
 
             ExpandedKey[i] = parity;
+        }
+
+        public void Clear()
+        {
+            Array.Clear(ExpandedKey, 0, ExpandedKey.Length);
+            ExpandedKey[ExpandedKey.Length - 1] = KeyScheduleConst;
+            Array.Clear(ExpandedTweak, 0, ExpandedTweak.Length);
         }
 
         public static ThreefishCipher CreateCipher(int stateSize)
