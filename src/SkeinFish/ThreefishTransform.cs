@@ -95,8 +95,8 @@ namespace SkeinFish
             case CipherMode.CFB:
                 transformFunc = e ? CfbEncrypt : new TransformFunc(CfbDecrypt);
                 break;
-            case CipherMode.CTS:
-                throw new CryptographicException("CTS mode not supported.");
+            default:
+                throw new CryptographicException("Unsupported cipher mode.");
             }
             var keyWords = new ulong[cipherWords];
             GetBytes(key, 0, keyWords, cipherBytes);
