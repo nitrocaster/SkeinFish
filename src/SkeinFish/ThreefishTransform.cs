@@ -44,6 +44,7 @@ namespace SkeinFish
         private readonly ThreefishTransformMode transformMode;
         private readonly CipherMode cipherMode;
         private readonly PaddingMode paddingMode;
+        private readonly int feedbackBytes;
         private readonly int cipherBytes;
         private readonly int cipherWords;
         private readonly ulong[] block;
@@ -55,7 +56,7 @@ namespace SkeinFish
         private readonly byte[] streamBytes;
         private int usedStreamBytes;
 
-        public ThreefishTransform(byte[] key, byte[] iv, ThreefishTransformMode transformMode,
+        internal ThreefishTransform(byte[] key, byte[] iv, int feedbackSize, ThreefishTransformMode transformMode,
             CipherMode cipherMode, PaddingMode paddingMode)
         {
             this.transformMode = transformMode;
@@ -63,7 +64,7 @@ namespace SkeinFish
             this.paddingMode = paddingMode;
             cipherBytes = key.Length;
             cipherWords = key.Length/8;
-            OutputBlockSize = key.Length;
+            feedbackBytes = feedbackSize/8;
             // Allocate working blocks now so that we don't have to allocate them
             // each time Transform(Final)Block is called
             block = new ulong[cipherWords];
@@ -249,10 +250,10 @@ namespace SkeinFish
             {
                 // Generate new stream bytes if we've used
                 // them all up
-                if (usedStreamBytes>=cipherBytes)
+                if (usedStreamBytes>=feedbackBytes)
                 {
                     cipher.Encrypt(block, block);
-                    PutBytes(block, streamBytes, 0, cipherBytes);
+                    PutBytes(block, streamBytes, 0, feedbackBytes);
                     usedStreamBytes = 0;
                 }
                 // XOR input byte with stream byte, output it
@@ -270,15 +271,15 @@ namespace SkeinFish
             {
                 // Generate new stream bytes if we've used
                 // them all up
-                if (usedStreamBytes>=cipherBytes)
+                if (usedStreamBytes>=feedbackBytes)
                 {
                     // Copy cipher stream bytes to working block
                     // (this is the feedback)
-                    GetBytes(streamBytes, 0, block, cipherBytes);
+                    GetBytes(streamBytes, 0, block, feedbackBytes);
                     // Process
                     cipher.Encrypt(block, block);
                     // Put back
-                    PutBytes(block, streamBytes, 0, cipherBytes);
+                    PutBytes(block, streamBytes, 0, feedbackBytes);
                     // Reset for next time
                     usedStreamBytes = 0;
                 }
@@ -301,15 +302,15 @@ namespace SkeinFish
             {
                 // Generate new stream bytes if we've used
                 // them all up
-                if (usedStreamBytes>=cipherBytes)
+                if (usedStreamBytes>=feedbackBytes)
                 {
                     // Copy cipher stream bytes to working block
                     // (this is the feedback)
-                    GetBytes(streamBytes, 0, block, cipherBytes);
+                    GetBytes(streamBytes, 0, block, feedbackBytes);
                     // Process
                     cipher.Encrypt(block, block);
                     // Put back
-                    PutBytes(block, streamBytes, 0, cipherBytes);
+                    PutBytes(block, streamBytes, 0, feedbackBytes);
                     // Reset for next time
                     usedStreamBytes = 0;
                 }
@@ -341,10 +342,13 @@ namespace SkeinFish
 
         public int InputBlockSize
         {
-            get { return OutputBlockSize; }
+            get { return cipherBytes; }
         }
 
-        public int OutputBlockSize { get; private set; }
+        public int OutputBlockSize
+        {
+            get { return cipherBytes; }
+        }
 
         private void PadBlock(byte[] input, int inputOffset, int alreadyFilled)
         {

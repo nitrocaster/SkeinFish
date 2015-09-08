@@ -50,6 +50,7 @@ namespace SkeinFish
             // Set up default sizes
             KeySizeValue = DefaultCipherSize;
             BlockSizeValue = DefaultCipherSize;
+            FeedbackSizeValue = DefaultCipherSize/2;
             // ECB is the default for the other ciphers in
             // the standard library I think
             ModeValue = CipherMode.ECB;
@@ -64,7 +65,8 @@ namespace SkeinFish
 
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformMode.Decrypt, ModeValue, PaddingValue);
+            var tsm = new ThreefishTransform(rgbKey, rgbIV, FeedbackSize,
+                ThreefishTransformMode.Decrypt, ModeValue, PaddingValue);
             if (tweak!=null)
                 tsm.InternalSetTweak(tweak);
             return tsm;
@@ -72,7 +74,8 @@ namespace SkeinFish
 
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
-            var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformMode.Encrypt, ModeValue, PaddingValue);
+            var tsm = new ThreefishTransform(rgbKey, rgbIV, FeedbackSize,
+                ThreefishTransformMode.Encrypt, ModeValue, PaddingValue);
             if (tweak!=null)
                 tsm.InternalSetTweak(tweak);
             return tsm;
