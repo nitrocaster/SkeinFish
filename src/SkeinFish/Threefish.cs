@@ -51,9 +51,8 @@ namespace SkeinFish
             KeySizeValue = DefaultCipherSize;
             BlockSizeValue = DefaultCipherSize;
             FeedbackSizeValue = DefaultCipherSize/2;
-            // ECB is the default for the other ciphers in
-            // the standard library I think
-            ModeValue = CipherMode.ECB;
+            // CBC is the default for the other symmetric ciphers in the standard library.
+            ModeValue = CipherMode.CBC;
         }
 
         public void SetTweak(ulong[] newTweak)
