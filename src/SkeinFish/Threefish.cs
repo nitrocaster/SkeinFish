@@ -34,33 +34,30 @@ namespace SkeinFish
 {
     public class Threefish : SymmetricAlgorithm
     {
-        const int DefaultCipherSize = 256;
+        private const int DefaultCipherSize = 256;
         private ulong[] tweak;
 
         public Threefish()
         {
             // Set up supported key and block sizes for Threefish
-            KeySizes[] supportedSizes = 
+            KeySizes[] supportedSizes =
             {
                 new KeySizes(256, 512, 256),
                 new KeySizes(1024, 1024, 0)
             };
-
-            base.LegalBlockSizesValue = supportedSizes;
-            base.LegalKeySizesValue   = supportedSizes;
-
+            LegalBlockSizesValue = supportedSizes;
+            LegalKeySizesValue = supportedSizes;
             // Set up default sizes
-            base.KeySizeValue   = DefaultCipherSize;
-            base.BlockSizeValue = DefaultCipherSize;
-
+            KeySizeValue = DefaultCipherSize;
+            BlockSizeValue = DefaultCipherSize;
             // ECB is the default for the other ciphers in
             // the standard library I think
-            base.ModeValue = CipherMode.ECB;
+            ModeValue = CipherMode.ECB;
         }
 
         public void SetTweak(ulong[] newTweak)
         {
-            if (newTweak.Length != 2)
+            if (newTweak.Length!=2)
                 throw new ArgumentException("Tweak must be an array of two unsigned 64-bit integers.");
             tweak = newTweak;
         }
@@ -68,7 +65,7 @@ namespace SkeinFish
         public override ICryptoTransform CreateDecryptor(byte[] rgbKey, byte[] rgbIV)
         {
             var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformMode.Decrypt, ModeValue, PaddingValue);
-            if (tweak != null)
+            if (tweak!=null)
                 tsm.InternalSetTweak(tweak);
             return tsm;
         }
@@ -76,28 +73,22 @@ namespace SkeinFish
         public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[] rgbIV)
         {
             var tsm = new ThreefishTransform(rgbKey, rgbIV, ThreefishTransformMode.Encrypt, ModeValue, PaddingValue);
-            if (tweak != null)
+            if (tweak!=null)
                 tsm.InternalSetTweak(tweak);
             return tsm;
         }
 
         public override void GenerateIV()
-        {
-            base.IVValue = GenerateRandomBytes(base.BlockSizeValue / 8);
-        }
+        { IVValue = GenerateRandomBytes(BlockSizeValue/8); }
 
         public override void GenerateKey()
-        {
-            base.KeyValue = GenerateRandomBytes(base.KeySizeValue / 8);
-        }
+        { KeyValue = GenerateRandomBytes(KeySizeValue/8); }
 
-        static byte[] GenerateRandomBytes(int amount)
+        private static byte[] GenerateRandomBytes(int amount)
         {
             var rngCrypto = new RNGCryptoServiceProvider();
-
             var bytes = new byte[amount];
             rngCrypto.GetBytes(bytes);
-
             return bytes;
         }
     }

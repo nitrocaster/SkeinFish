@@ -31,24 +31,17 @@ namespace SkeinFish
     {
         protected const ulong KeyScheduleConst = 0x1BD11BDAA9FC1A22;
         protected const int ExpandedTweakSize = 3;
-
         protected ulong[] ExpandedKey;
         protected ulong[] ExpandedTweak;
 
         protected ThreefishCipher()
-        {
-            ExpandedTweak = new ulong[ExpandedTweakSize];
-        }
+        { ExpandedTweak = new ulong[ExpandedTweakSize]; }
 
         protected static ulong RotateLeft64(ulong v, int b)
-        {
-            return (v << b) | (v >> (64 - b));
-        }
+        { return v<<b | v>>(64-b); }
 
         protected static ulong RotateRight64(ulong v, int b)
-        {
-            return (v >> b) | (v << (64 - b));
-        }
+        { return v>>b | v<<(64-b); }
 
         protected static void Mix(ref ulong a, ref ulong b, int r)
         {
@@ -59,7 +52,7 @@ namespace SkeinFish
         protected static void Mix(ref ulong a, ref ulong b, int r, ulong k0, ulong k1)
         {
             b += k1;
-            a += b + k0;
+            a += b+k0;
             b = RotateLeft64(b, r) ^ a;
         }
 
@@ -72,7 +65,7 @@ namespace SkeinFish
         protected static void UnMix(ref ulong a, ref ulong b, int r, ulong k0, ulong k1)
         {
             b = RotateRight64(b ^ a, r);
-            a -= b + k0;
+            a -= b+k0;
             b -= k1;
         }
 
@@ -85,22 +78,19 @@ namespace SkeinFish
 
         public void SetKey(ulong[] key)
         {
-            int i;
             ulong parity = KeyScheduleConst;
-
-            for (i = 0; i < ExpandedKey.Length - 1; i++)
+            for (int i = 0; i<ExpandedKey.Length-1; i++)
             {
                 ExpandedKey[i] = key[i];
                 parity ^= key[i];
             }
-
-            ExpandedKey[i] = parity;
+            ExpandedKey[ExpandedKey.Length-1] = parity;
         }
 
         public void Clear()
         {
             Array.Clear(ExpandedKey, 0, ExpandedKey.Length);
-            ExpandedKey[ExpandedKey.Length - 1] = KeyScheduleConst;
+            ExpandedKey[ExpandedKey.Length-1] = KeyScheduleConst;
             Array.Clear(ExpandedTweak, 0, ExpandedTweak.Length);
         }
 
@@ -108,14 +98,14 @@ namespace SkeinFish
         {
             switch (stateSize)
             {
-                case 256: return new Threefish256(); 
-                case 512: return new Threefish512();
-                case 1024: return new Threefish1024();
+            case 256: return new Threefish256();
+            case 512: return new Threefish512();
+            case 1024: return new Threefish1024();
+            default: return null;
             }
-            return null;
         }
 
-        abstract public void Encrypt(ulong[] input, ulong[] output);
-        abstract public void Decrypt(ulong[] input, ulong[] output);
+        public abstract void Encrypt(ulong[] input, ulong[] output);
+        public abstract void Decrypt(ulong[] input, ulong[] output);
     }
 }

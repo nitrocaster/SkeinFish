@@ -58,13 +58,13 @@ namespace SkeinFish.Tests
             Result,
             MacKeyHeader,
             MacKey,
-            Done,
+            Done
         }
 
         private static readonly char[] ByteSeparators = {' ', '\t'};
         private readonly StreamReader reader;
         private ScannerState state = ScannerState.Start;
-        
+
         public KatReader(string fileName)
         { reader = new StreamReader(fileName); }
 
@@ -78,7 +78,7 @@ namespace SkeinFish.Tests
         public bool FillResult(KatResult kr)
         {
             var dataFound = false;
-            while (state != ScannerState.Done && !reader.EndOfStream)
+            while (state!=ScannerState.Done && !reader.EndOfStream)
             {
                 CurrentLine++;
                 ParseLine(reader.ReadLine(), kr);
@@ -88,10 +88,10 @@ namespace SkeinFish.Tests
             return dataFound;
         }
 
-        public void ParseLine(string line, KatResult kr)
+        private void ParseLine(string line, KatResult kr)
         {
             line = line.Trim();
-            if (line.Length <= 1)
+            if (line.Length<=1)
                 return;
             if (line.StartsWith("Message"))
             {
@@ -133,7 +133,7 @@ namespace SkeinFish.Tests
             }
         }
 
-        public void ParseMessageLine(string line, KatResult kr)
+        private void ParseMessageLine(string line, KatResult kr)
         {
             if (line.Contains("(none)"))
             {
@@ -151,7 +151,7 @@ namespace SkeinFish.Tests
             }
         }
 
-        public void ParseMacKeyLine(string line, KatResult kr)
+        private void ParseMacKeyLine(string line, KatResult kr)
         {
             if (line.Contains("(none)"))
                 return;
@@ -166,7 +166,7 @@ namespace SkeinFish.Tests
             }
         }
 
-        public void ParseMacKeyHeaderLine(string line, KatResult kr)
+        private void ParseMacKeyHeaderLine(string line, KatResult kr)
         {
             var rx = new Regex(".*=\\s*(\\d+) .*");
             Match result = rx.Match(line);
@@ -177,7 +177,7 @@ namespace SkeinFish.Tests
             state = ScannerState.MacKey;
         }
 
-        public void ParseResultLine(string line, KatResult kr)
+        private void ParseResultLine(string line, KatResult kr)
         {
             var resultBytes = line.Split(ByteSeparators, StringSplitOptions.RemoveEmptyEntries);
             foreach (var sb in resultBytes)
@@ -190,7 +190,7 @@ namespace SkeinFish.Tests
             }
         }
 
-        public void ParseHeaderLine(string line, KatResult kr)
+        private void ParseHeaderLine(string line, KatResult kr)
         {
             var rx = new Regex(":Skein-(\\d+):\\s*(\\d+)-.*=\\s*(\\d+) bits(.*)");
             Match result = rx.Match(line);
@@ -200,14 +200,14 @@ namespace SkeinFish.Tests
             kr.HashBitLength = int.Parse(result.Groups[2].Value);
             kr.MsgLength = int.Parse(result.Groups[3].Value);
             kr.TrailingChars = result.Groups[4].Value;
-            if (kr.MsgLength == 0 || kr.MsgLength % 8 != 0)
-                kr.Msg = new byte[(kr.MsgLength >> 3) + 1];
+            if (kr.MsgLength==0 || kr.MsgLength%8!=0)
+                kr.Msg = new byte[(kr.MsgLength>>3)+1];
             else
-                kr.Msg = new byte[kr.MsgLength >> 3];
-            if (kr.HashBitLength % 8 != 0)
-                kr.Result = new byte[(kr.HashBitLength >> 3) + 1];
+                kr.Msg = new byte[kr.MsgLength>>3];
+            if (kr.HashBitLength%8!=0)
+                kr.Result = new byte[(kr.HashBitLength>>3)+1];
             else
-                kr.Result = new byte[kr.HashBitLength >> 3];
+                kr.Result = new byte[kr.HashBitLength>>3];
             kr.MsgFill = 0;
             kr.ResultFill = 0;
             kr.MacKeyFill = 0;
