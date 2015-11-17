@@ -7,7 +7,7 @@ Both were designed by Bruce Schneier, among others. This is an implementation of
 ## Quick and Dirty usage guide
 
 First, add a reference to SkeinFish.dll to your project. Next, use as such:
-
+```cs
     using SkeinFish;
     
     static byte[] hash_skein(byte[] input)
@@ -16,7 +16,7 @@ First, add a reference to SkeinFish.dll to your project. Next, use as such:
         Skein skein = new Skein(512, 512);
         return skein.ComputeHash(input, 0, input.Length);
     }
-
+```
 ## Using Threefish
 
 The Threefish block cipher is also implemented as part of SkeinFish (hence the name).
