@@ -262,6 +262,26 @@ namespace SkeinFish.Tests
         }
 
         [Test]
+        public void TestThreefish256EcbPkcs7Inp256()
+        {
+            byte[] input = Input256Di;
+            byte[] key = Key256Di;
+            var thf = new Threefish
+            {
+                BlockSize = 256,
+                Key = key,
+                IV = key,
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.PKCS7
+            };
+            var enc = thf.CreateEncryptor();
+            var dec = thf.CreateDecryptor();
+            var cipher = enc.TransformFinalBlock(input, 0, input.Length);
+            var decipher = dec.TransformFinalBlock(cipher, 0, cipher.Length);
+            Assert.AreEqual(input, decipher);
+        }
+
+        [Test]
         public void TestThreefish512EcbPkcs7()
         {
             // remove 8 trailing bytes to test padding
