@@ -481,16 +481,15 @@ namespace SkeinFish
             // Do the padding and the final transform if there's any data left
             if (transformMode==ThreefishTransformMode.Encrypt)
             {
+                if (inputCount%cipherBytes!=0 && paddingMode==PaddingMode.None)
+                    throw new CryptographicException("inputCount must be divisible by the block size.");
                 output = new byte[inputCount];
                 int done = Transform(inputBuffer, inputOffset, inputCount, output, 0);
-                if (done<inputCount)
+                if ((done<inputCount || inputCount%cipherBytes==0) && paddingMode!=PaddingMode.None)
                 {
                     // Resize output buffer to be evenly divisible by the block size
-                    if (inputCount%cipherBytes!=0)
-                    {
-                        int outputSize = inputCount+(cipherBytes-(inputCount%cipherBytes));
-                        Array.Resize(ref output, outputSize);
-                    }
+                    int outputSize = inputCount+(cipherBytes-(inputCount%cipherBytes));
+                    Array.Resize(ref output, outputSize);
                     int remaining = inputCount-done;
                     // Copy remaining bytes over to the output
                     for (int i = 0; i<remaining; i++)
